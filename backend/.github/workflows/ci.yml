@@ -1,0 +1,62 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ['main', 'develop']
+    paths:
+      - 'backend/**' # Only run if backend code changes
+  pull_request:
+    branches: ['main', 'develop']
+    paths:
+      - 'backend/**' # Only run if backend code changes
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend # Set working directory for all run steps
+
+    strategy:
+      matrix:
+        node-version: [20.x] # Specify Node.js version
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'bun' # Cache bun dependencies
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest # Or specify a version
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run linter
+        run: bun run lint # Assumes 'lint' script is in package.json
+
+      - name: Run tests
+        run: bun run test # Assumes 'test' script is in package.json
+
+      - name: Build application
+        run: bun run build # Assumes 'build' script is in package.json
+
+
+    # Placeholder for CD steps (e.g., build and push Docker image)
+    # - name: Build and push Docker image
+    #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    #   uses: docker/build-push-action@v5
+    #   with:
+    #     context: ./backend
+    #     push: true
+    #     tags: your-docker-hub-username/hampa-backend:latest # Replace with your Docker Hub username and image name
+    #     # secrets: |
+    #     #   DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+    #     #   DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}

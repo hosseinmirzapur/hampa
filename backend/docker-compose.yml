@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      NODE_ENV: development # Or production, depending on the stage
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: "YOUR_VERY_SECRET_JWT_KEY" # TODO: Change and move to .env
+      SENTRY_DSN: "" # TODO: Add your Sentry DSN here, preferably via .env
+      # Add other environment variables as needed
+    volumes:
+      - .:/usr/src/app # Mount current directory for development (optional)
+      - /usr/src/app/node_modules # Don't mount node_modules from host
+      - /usr/src/app/dist # Don't mount dist from host in production
+    # command: bun run start:dev # For development with hot-reloading
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres} # Use .env or default
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme} # Use .env or default
+      POSTGRES_DB: ${POSTGRES_DB:-hampa_db} # Use .env or default
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
