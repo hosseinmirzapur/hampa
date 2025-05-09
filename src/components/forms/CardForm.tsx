@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '../../contexts/AuthContext';
-import { DayOfWeek, TimeOfDay, DaysMap } from '../../types';
+import React, { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "../../contexts/AuthContext";
+import { DayOfWeek, TimeOfDay, DaysMap } from "../../types";
+import { toast } from "react-toastify";
 
 // Define schema for the form
 const cardFormSchema = z.object({
-  name: z.string().min(2, 'نام باید حداقل 2 حرف باشد'),
-  location: z.string().min(3, 'لطفا محل دویدن را وارد کنید'),
-  time: z.string().min(1, 'لطفا ساعت تقریبی را انتخاب کنید'),
+  name: z.string().min(2, "نام باید حداقل 2 حرف باشد"),
+  location: z.string().min(3, "لطفا محل دویدن را وارد کنید"),
+  time: z.string().min(1, "لطفا ساعت تقریبی را انتخاب کنید"),
   phoneNumber: z
     .string()
-    .min(11, 'شماره تلفن باید ۱۱ رقم باشد')
-    .max(11, 'شماره تلفن باید ۱۱ رقم باشد')
-    .regex(/^09\d{9}$/, 'فرمت شماره تلفن صحیح نیست (مثال: 09123456789)'),
+    .min(11, "شماره تلفن باید ۱۱ رقم باشد")
+    .max(11, "شماره تلفن باید ۱۱ رقم باشد")
+    .regex(/^09\d{9}$/, "فرمت شماره تلفن صحیح نیست (مثال: 09123456789)"),
   isPhoneNumberPublic: z.boolean(),
 });
 
@@ -38,13 +39,13 @@ export const CardForm: React.FC<CardFormProps> = ({
 }) => {
   const { user } = useAuth();
   const [days, setDays] = useState<DaysMap>({
-    'شنبه': false,
-    'یکشنبه': false,
-    'دوشنبه': false,
-    'سه‌شنبه': false,
-    'چهارشنبه': false,
-    'پنج‌شنبه': false,
-    'جمعه': false,
+    شنبه: false,
+    یکشنبه: false,
+    دوشنبه: false,
+    سه‌شنبه: false,
+    چهارشنبه: false,
+    پنج‌شنبه: false,
+    جمعه: false,
   });
 
   const {
@@ -55,19 +56,19 @@ export const CardForm: React.FC<CardFormProps> = ({
   } = useForm<CardFormValues>({
     resolver: zodResolver(cardFormSchema),
     defaultValues: {
-      name: user?.name || '',
-      phoneNumber: user?.phoneNumber || '',
+      name: user?.name || "",
+      phoneNumber: user?.phoneNumber || "",
       isPhoneNumberPublic: false,
     },
   });
 
   const timeOptions: TimeOfDay[] = [
-    'صبح زود',
-    'صبح',
-    'ظهر',
-    'بعد از ظهر',
-    'عصر',
-    'شب',
+    "صبح زود",
+    "صبح",
+    "ظهر",
+    "بعد از ظهر",
+    "عصر",
+    "شب",
   ];
 
   const handleDayClick = (day: DayOfWeek) => {
@@ -85,13 +86,12 @@ export const CardForm: React.FC<CardFormProps> = ({
 
   const onFormSubmit = (data: CardFormValues) => {
     const selectedDays = getSelectedDays();
-    
+
     if (selectedDays.length === 0) {
       // Show error for days
-      alert('لطفا حداقل یک روز را انتخاب کنید');
+      toast.error("لطفا حداقل یک روز را انتخاب کنید");
       return;
     }
-    
     onSubmit(
       data.name,
       data.location,
@@ -102,19 +102,24 @@ export const CardForm: React.FC<CardFormProps> = ({
     );
   };
 
-  const hasAtLeastOneDaySelected = Object.values(days).some(isSelected => isSelected);
+  const hasAtLeastOneDaySelected = Object.values(days).some(
+    (isSelected) => isSelected
+  );
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           اسم یا لقب
         </label>
         <input
           id="name"
           type="text"
-          {...register('name')}
-          className={`input ${errors.name ? 'border-error focus:ring-error' : ''}`}
+          {...register("name")}
+          className={`input ${errors.name ? "border-error focus:ring-error" : ""}`}
         />
         {errors.name && (
           <p className="mt-1 text-error text-sm">{errors.name.message}</p>
@@ -122,14 +127,17 @@ export const CardForm: React.FC<CardFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="location"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           محل دویدن
         </label>
         <input
           id="location"
           type="text"
-          {...register('location')}
-          className={`input ${errors.location ? 'border-error focus:ring-error' : ''}`}
+          {...register("location")}
+          className={`input ${errors.location ? "border-error focus:ring-error" : ""}`}
           placeholder="مثال: پارک لاله"
         />
         {errors.location && (
@@ -146,8 +154,8 @@ export const CardForm: React.FC<CardFormProps> = ({
               type="button"
               className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                 days[day as DayOfWeek]
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-primary text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
               onClick={() => handleDayClick(day as DayOfWeek)}
             >
@@ -161,7 +169,10 @@ export const CardForm: React.FC<CardFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="time"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           ساعت حدودی
         </label>
         <Controller
@@ -171,7 +182,7 @@ export const CardForm: React.FC<CardFormProps> = ({
             <select
               id="time"
               {...field}
-              className={`input ${errors.time ? 'border-error focus:ring-error' : ''}`}
+              className={`input ${errors.time ? "border-error focus:ring-error" : ""}`}
             >
               <option value="">انتخاب ساعت</option>
               {timeOptions.map((time) => (
@@ -188,20 +199,25 @@ export const CardForm: React.FC<CardFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="phoneNumber"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           شماره تماس
         </label>
         <input
           id="phoneNumber"
           type="tel"
           inputMode="numeric"
-          {...register('phoneNumber')}
-          className={`input text-left ${errors.phoneNumber ? 'border-error focus:ring-error' : ''}`}
+          {...register("phoneNumber")}
+          className={`input text-left ${errors.phoneNumber ? "border-error focus:ring-error" : ""}`}
           dir="ltr"
           placeholder="09123456789"
         />
         {errors.phoneNumber && (
-          <p className="mt-1 text-error text-sm">{errors.phoneNumber.message}</p>
+          <p className="mt-1 text-error text-sm">
+            {errors.phoneNumber.message}
+          </p>
         )}
       </div>
 
@@ -209,10 +225,13 @@ export const CardForm: React.FC<CardFormProps> = ({
         <input
           id="isPhoneNumberPublic"
           type="checkbox"
-          {...register('isPhoneNumberPublic')}
+          {...register("isPhoneNumberPublic")}
           className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
         />
-        <label htmlFor="isPhoneNumberPublic" className="mr-2 block text-sm text-gray-700">
+        <label
+          htmlFor="isPhoneNumberPublic"
+          className="mr-2 block text-sm text-gray-700"
+        >
           شماره تماس مشخص باشد (در غیر این صورت محرمانه خواهد بود)
         </label>
       </div>
@@ -228,7 +247,7 @@ export const CardForm: React.FC<CardFormProps> = ({
             <span>در حال ثبت...</span>
           </div>
         ) : (
-          'ثبت و ایجاد کارت'
+          "ثبت و ایجاد کارت"
         )}
       </button>
     </form>

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { ProfileForm } from '../components/profile/ProfileForm';
-import { LogOut } from 'lucide-react';
-import { ConfirmationModal } from '../components/modals/ConfirmationModal';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { ProfileForm } from "../components/profile/ProfileForm";
+import { LogOut } from "lucide-react";
+import { ConfirmationModal } from "../components/modals/ConfirmationModal";
+import { toast } from "react-toastify";
 
 const Profile: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
@@ -21,24 +22,27 @@ const Profile: React.FC = () => {
     );
   }
 
-  const handleProfileUpdate = async (name: string, birthDate: string | null) => {
+  const handleProfileUpdate = async (
+    name: string,
+    birthDate: string | null
+  ) => {
     setIsUpdating(true);
-    
+
     try {
       // In a real app, this would send data to the backend
       updateUser({
         name,
         birthDate,
       });
-      
+
       // Simulate delay
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Show success feedback
-      alert('اطلاعات پروفایل با موفقیت به‌روزرسانی شد');
+      toast.success("اطلاعات پروفایل با موفقیت به‌روزرسانی شد");
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('خطا در به‌روزرسانی پروفایل');
+      console.error("Error updating profile:", error);
+      toast.error("خطا در به‌روزرسانی پروفایل");
     } finally {
       setIsUpdating(false);
     }
@@ -61,14 +65,14 @@ const Profile: React.FC = () => {
             <span className="mr-1">خروج</span>
           </button>
         </div>
-        
+
         <ProfileForm
           user={user}
           onSubmit={handleProfileUpdate}
           isLoading={isUpdating}
         />
       </div>
-      
+
       <ConfirmationModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}

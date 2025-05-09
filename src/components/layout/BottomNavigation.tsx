@@ -1,39 +1,29 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { User, MapPin, Users, CreditCard, Bell } from 'lucide-react';
-import { useNotification } from '../../contexts/NotificationContext';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { User, MapPin, Users, CreditCard } from "lucide-react";
 
 export const BottomNavigation: React.FC = () => {
-  const location = useLocation();
-  const { unreadCount } = useNotification();
-
   // Define navigation items
   const navItems = [
     {
-      to: '/app/profile',
+      to: "/app/profile",
       icon: <User size={20} />,
-      label: 'پروفایل',
+      label: "پروفایل",
     },
     {
-      to: '/app/explore',
+      to: "/app/explore",
       icon: <MapPin size={20} />,
-      label: 'اکسپلور',
+      label: "اکسپلور",
     },
     {
-      to: '/app/runners',
+      to: "/app/runners",
       icon: <Users size={20} />,
-      label: 'لیست دونده‌ها',
+      label: "لیست دونده‌ها",
     },
     {
-      to: '/app/my-cards',
+      to: "/app/my-cards",
       icon: <CreditCard size={20} />,
-      label: 'کارت‌های من',
-    },
-    {
-      to: '/app/joint-runs',
-      icon: <Bell size={20} />,
-      label: 'برنامه‌های مشترک',
-      badge: unreadCount,
+      label: "کارت‌های من",
     },
   ];
 
@@ -45,21 +35,13 @@ export const BottomNavigation: React.FC = () => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-1/5 py-1 transition-colors duration-200 ${
-                isActive
-                  ? 'text-primary'
-                  : 'text-gray-600 hover:text-primary'
+              `flex flex-col items-center justify-center w-1/4 py-1 transition-colors duration-200 ${
+                // Changed w-1/5 to w-1/4
+                isActive ? "text-primary" : "text-gray-600 hover:text-primary"
               }`
             }
           >
-            <div className="relative">
-              {item.icon}
-              {item.badge && item.badge > 0 && (
-                <span className="absolute -top-1 -left-1 flex items-center justify-center w-4 h-4 bg-secondary text-white text-xs rounded-full">
-                  {item.badge > 9 ? '9+' : item.badge}
-                </span>
-              )}
-            </div>
+            <div className="relative">{item.icon}</div>
             <span className="text-xs mt-0.5">{item.label}</span>
           </NavLink>
         ))}

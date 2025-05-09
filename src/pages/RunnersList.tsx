@@ -1,27 +1,29 @@
-import React, { useState } from 'react';
-import { CardsList } from '../components/cards/CardsList';
-import { useRunnerCards } from '../hooks/useRunnerCards';
-import { SubscriptionModal } from '../components/modals/SubscriptionModal';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { CardsList } from "../components/cards/CardsList";
+import { useRunnerCards } from "../hooks/useRunnerCards";
+import { SubscriptionModal } from "../components/modals/SubscriptionModal";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "react-toastify";
 
 const RunnersList: React.FC = () => {
-  const { getAllCards, expressInterest, hasExpressedInterest, isLoading } = useRunnerCards();
+  const { getAllCards, expressInterest, hasExpressedInterest, isLoading } =
+    useRunnerCards();
   const { user, updateUser } = useAuth();
   const [isInterestLoading, setIsInterestLoading] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const handleInterestClick = async (cardId: string) => {
     setIsInterestLoading(true);
-    
+
     try {
       const success = expressInterest(cardId);
-      
+
       if (success) {
         // Show success feedback
-        alert('علاقه‌مندی شما با موفقیت ثبت شد');
+        toast.success("علاقه‌مندی شما با موفقیت ثبت شد");
       }
     } catch (error) {
-      console.error('Error expressing interest:', error);
+      console.error("Error expressing interest:", error);
     } finally {
       setIsInterestLoading(false);
     }
@@ -32,16 +34,16 @@ const RunnersList: React.FC = () => {
     if (user) {
       const expiryDate = new Date();
       expiryDate.setMonth(expiryDate.getMonth() + 3); // 3 months subscription
-      
+
       updateUser({
         hasSubscription: true,
         subscriptionExpiryDate: expiryDate.toISOString(),
       });
-      
+
       setShowSubscriptionModal(false);
-      
+
       // Show success message
-      alert('اشتراک شما با موفقیت فعال شد!');
+      toast.success("اشتراک شما با موفقیت فعال شد!");
     }
   };
 
@@ -61,15 +63,16 @@ const RunnersList: React.FC = () => {
           </button>
         )}
       </div>
-      
+
       {!isLoading && !hasSubscription && (
         <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
           <p className="text-sm text-blue-800">
-            شما به عنوان کاربر رایگان، فقط به ۳ کارت آخر دسترسی دارید. برای مشاهده همه کارت‌ها، اشتراک تهیه کنید.
+            شما به عنوان کاربر رایگان، فقط به ۳ کارت آخر دسترسی دارید. برای
+            مشاهده همه کارت‌ها، اشتراک تهیه کنید.
           </p>
         </div>
       )}
-      
+
       <CardsList
         cards={getAllCards()}
         onInterestClick={handleInterestClick}
@@ -78,7 +81,7 @@ const RunnersList: React.FC = () => {
         showSubscriptionLock={true}
         onSubscribeClick={() => setShowSubscriptionModal(true)}
       />
-      
+
       <SubscriptionModal
         isOpen={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}

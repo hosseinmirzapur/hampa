@@ -1,15 +1,15 @@
-import React, { useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BottomNavigation } from './BottomNavigation';
-import { Header } from './Header';
-import { useAuth } from '../../contexts/AuthContext';
-import { initializeMockData } from '../../utils/mockData';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import { BottomNavigation } from "./BottomNavigation";
+import { Header } from "./Header";
+import { useAuth } from "../../contexts/AuthContext";
+import { initializeMockData } from "../../utils/mockData";
+import { AnimatePresence, motion } from "framer-motion"; // Import AnimatePresence and motion
 
 export const Layout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // Get location
 
   // Initialize mock data for demonstration
   useEffect(() => {
@@ -19,7 +19,7 @@ export const Layout: React.FC = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -42,8 +42,10 @@ export const Layout: React.FC = () => {
       <Header />
       <main className="flex-grow pb-24">
         <AnimatePresence mode="wait">
+          {" "}
+          {/* Wrap Outlet with AnimatePresence */}
           <motion.div
-            key={location.pathname}
+            key={location.pathname} // Use location.pathname as key
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
