@@ -1,14 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  MapPin,
-  Calendar,
-  Heart,
-  ChevronDown,
-  ArrowRight,
-} from "lucide-react";
+import { Users, MapPin, Calendar, Heart, ArrowRight } from "lucide-react";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -94,7 +87,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <motion.section
-        className="relative h-screen flex items-center justify-center bg-gradient-to-l from-primary/10 to-primary/5 overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center bg-gradient-to-l from-primary/10 to-primary/5 overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
@@ -148,16 +141,11 @@ const Home: React.FC = () => {
             </button>
           </motion.div>
         </div>
-        <motion.div
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 animate-bounce z-10" // Adjusted bottom and added z-10
-          variants={fadeInUp}
-        >
-          <ChevronDown className="w-8 h-8 text-primary" />
-        </motion.div>
       </motion.section>
 
       {/* Features Section */}
       <motion.section
+        id="features-section" // Added ID for scrolling
         className="py-20 bg-white"
         initial="hidden"
         whileInView="visible"
