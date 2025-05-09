@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #009688;
+  --primary-light: #4DB6AC;
+  --primary-dark: #00796B;
+  --secondary: #FF5722;
+  --secondary-light: #FF8A65;
+  --secondary-dark: #E64A19;
+  --accent: #FFC107;
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --error: #F44336;
+  --gray-100: #F5F5F5;
+  --gray-200: #EEEEEE;
+  --gray-300: #E0E0E0;
+  --gray-400: #BDBDBD;
+  --gray-500: #9E9E9E;
+  --gray-600: #757575;
+  --gray-700: #616161;
+  --gray-800: #424242;
+  --gray-900: #212121;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  direction: rtl;
+  font-family: 'Vazirmatn', sans-serif;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  @apply text-gray-900 bg-gray-100;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+input, button, textarea, select {
+  font-family: inherit;
+}
+
+/* Hide default number input arrows */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-200);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+.font-vazir {
+  font-family: 'Vazirmatn', sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply rounded-lg px-4 py-2 font-medium transition-all duration-200 inline-flex items-center justify-center gap-2;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-2 focus:ring-primary-light focus:ring-opacity-50;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-2 focus:ring-secondary-light focus:ring-opacity-50;
+  }
+  
+  .btn-outline {
+    @apply border border-primary text-primary hover:bg-primary hover:text-white focus:ring-2 focus:ring-primary-light focus:ring-opacity-50;
+  }
+  
+  .input {
+    @apply block w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-200 hover:shadow-lg;
+  }
+}
