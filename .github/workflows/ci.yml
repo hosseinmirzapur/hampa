@@ -1,0 +1,77 @@
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Or your preferred Node.js version
+
+    - name: Install dependencies (backend)
+      run: | 
+        cd backend
+        npm ci
+
+    - name: Run Linters (backend)
+      run: |
+        cd backend
+        npm run lint
+
+    - name: Run Tests (backend)
+      run: |
+        cd backend
+        npm run test
+
+    - name: Build application (backend)
+      run: |
+        cd backend
+        npm run build
+
+    # Optional: Add steps for frontend if applicable
+    # - name: Install dependencies (frontend)
+    #   run: |
+    #     cd frontend # assuming your frontend is in a 'frontend' directory
+    #     npm ci
+
+    # - name: Build application (frontend)
+    #   run: |
+    #     cd frontend
+    #     npm run build
+
+  # Placeholder for CD pipeline (e.g., Docker build and push, deployment)
+  # deploy:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Build & Push Docker image
+  #       run: |
+  #         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+  #         docker build -t your-dockerhub-username/hampa-backend:latest ./backend
+  #         docker push your-dockerhub-username/hampa-backend:latest
+
+  #     - name: Deploy to Production (Example - replace with actual deployment steps)
+  #       run: |
+  #         echo "Deploying to production server..."
+  #         # Add your deployment commands here (e.g., SSH, kubectl, AWS CLI, GCP gcloud)
+

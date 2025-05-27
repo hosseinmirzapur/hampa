@@ -1,37 +1,55 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ObjectType, Field, InputType } from '@nestjs/graphql';
+import { IsString, IsBoolean, IsOptional } from 'class-validator';
+import { Notification } from '@prisma/client';
 
-export class NotificationDto {
-  @ApiProperty({ description: 'Unique identifier of the notification' })
+@ObjectType()
+export class NotificationType implements Notification {
+  @Field()
   id: string;
 
-  @ApiProperty({
-    description: 'Unique identifier of the user the notification is for',
-  })
+  @Field()
   userId: string;
 
-  @ApiProperty({
-    description: 'Type of the notification (e.g., NEW_JOINER, RUN_REMINDER)',
-  })
+  @Field()
   type: string;
 
-  @ApiProperty({ description: 'Content of the notification message' })
+  @Field()
   message: string;
 
-  @ApiProperty({
-    description: 'Optional ID of a related entity (e.g., JointRun ID)',
-    required: false,
-  })
+  @Field({ nullable: true })
   relatedEntityId?: string;
 
-  @ApiProperty({
-    description: 'Optional type of the related entity (e.g., JointRun)',
-    required: false,
-  })
+  @Field({ nullable: true })
   relatedEntityType?: string;
 
-  @ApiProperty({ description: 'Whether the notification has been read' })
+  @Field()
   isRead: boolean;
 
-  @ApiProperty({ description: 'Timestamp when the notification was created' })
+  @Field()
   createdAt: Date;
+}
+
+@InputType()
+export class CreateNotificationInput {
+  @Field()
+  @IsString()
+  userId: string; // The user to whom the notification is sent
+
+  @Field()
+  @IsString()
+  type: string; // e.g., "NEW_JOINER", "RUN_REMINDER", "FRIEND_REQUEST"
+
+  @Field()
+  @IsString()
+  message: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  relatedEntityId?: string; // e.g., JointRunId, UserId
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  relatedEntityType?: string; // e.g., "JointRun", "User"
 }

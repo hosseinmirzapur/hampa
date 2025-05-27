@@ -1,55 +1,36 @@
-import { Resolver, Mutation, Args, Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-
-@InputType()
-class RequestOtpInput {
-  @Field()
-  phoneNumber: string;
-}
-
-@InputType()
-class VerifyOtpInput {
-  @Field()
-  phoneNumber: string;
-  @Field()
-  otp: string;
-}
-
-@ObjectType()
-class AuthResult {
-  @Field()
-  success: boolean;
-
-  @Field({ nullable: true })
-  message?: string;
-}
+import { RequestOtpInput } from './dto/request-otp.dto';
+import { VerifyOtpAndRegisterUserInput } from './dto/verify-otp.dto';
+import { LoginInput } from './dto/login.dto';
+import { AuthPayload, UserType } from './dto/auth-payload.dto';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from './guards/gql-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from '@prisma/client';
 
 @Resolver()
 export class AuthResolver {
   constructor(private authService: AuthService) {}
 
-  // The AuthService methods expect an object with 'phone' property,
-  // so we need to map phoneNumber to phone for the service call.
-  @Mutation(() => AuthResult)
-  async requestOtp(@Args('input') input: RequestOtpInput): Promise<AuthResult> {
-    try {
-      const result = await this.authService.requestOtp({ phone: input.phoneNumber });
-      return { success: true, message: result.message };
-    } catch (error) {
-      return { success: false, message: error.message || 'Failed to request OTP' };
-    }
+  @Mutation(() => Boolean)
+  async requestOtp(@Args('requestOtpInput') requestOtpInput: RequestOtpInput) {
+    return this.authService.requestOtp(requestOtpInput.phone);
   }
 
-  @Mutation(() => AuthResult)
-  async verifyOtp(@Args('input') input: VerifyOtpInput): Promise<AuthResult> {
-    try {
-      const result = await this.authService.verifyOtp({
-        phone: input.phoneNumber,
-        otp: input.otp,
-      });
-      return { success: true, message: result.accessToken }; // Return accessToken as message for now
-    } catch (error) {
-      return { success: false, message: error.message || 'Failed to verify OTP' };
-    }
+  @Mutation(() => UserType)
+  async verifyOtpAndRegisterUser(@Args('verifyOtpAndRegisterUserInput') verifyOtpAndRegisterUserInput: VerifyOtpAndRegisterUserInput) {
+    return this.authService.verifyOtpAndRegisterUser(verifyOtpAndRegisterUserInput);
+  }
+
+  @Mutation(() => AuthPayload)
+  async login(@Args('loginInput') loginInput: LoginInput) {
+    return this.authService.login(loginInput.phone, loginInput.password);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => String)
+  async testProtectedRoute(@CurrentUser() user: User) {
+    return `Hello ${user.name || user.phone}! You are authenticated.`;
   }
 }

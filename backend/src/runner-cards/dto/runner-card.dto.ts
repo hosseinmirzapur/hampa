@@ -1,35 +1,66 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ObjectType, Field, InputType } from '@nestjs/graphql';
+import { IsString, IsOptional, Length, IsUrl } from 'class-validator';
+import { RunnerCard } from '@prisma/client';
 
-export class RunnerCardDto {
-  @ApiProperty({ description: 'Unique identifier of the runner card' })
+@ObjectType()
+export class RunnerCardType implements RunnerCard {
+  @Field()
   id: string;
 
-  @ApiProperty({ description: 'Title of the runner card' })
+  @Field()
   title: string;
 
-  @ApiProperty({
-    description: 'Description of the runner card',
-    required: false,
-  })
+  @Field({ nullable: true })
   description?: string;
 
-  @ApiProperty({ description: 'URL to the runner card image', required: false })
+  @Field({ nullable: true })
   imageUrl?: string;
 
-  @ApiProperty({
-    description: 'Unique identifier of the user who owns the card',
-  })
+  @Field()
   userId: string;
 
-  @ApiProperty({ description: 'Timestamp when the runner card was created' })
+  @Field()
   createdAt: Date;
 
-  @ApiProperty({
-    description: 'Timestamp when the runner card was last updated',
-  })
+  @Field()
   updatedAt: Date;
+}
 
-  // TODO: Add properties for specific runner card stats if needed
-  // @ApiProperty({ description: 'Example stat', required: false })
-  // exampleStat?: number;
+@InputType()
+export class CreateRunnerCardInput {
+  @Field()
+  @IsString()
+  @Length(1, 100)
+  title: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  description?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
+}
+
+@InputType()
+export class UpdateRunnerCardInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  title?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  description?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
 }

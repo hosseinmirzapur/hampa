@@ -1,30 +1,55 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ObjectType, Field, InputType } from '@nestjs/graphql';
+import { IsString, IsOptional, IsEmail, Length } from 'class-validator';
+import { User } from '@prisma/client';
 
-export class UserProfileDto {
-  @ApiProperty({ description: 'Unique identifier of the user' })
+@ObjectType()
+export class UserProfileType implements Partial<User> {
+  @Field()
   id: string;
 
-  @ApiProperty({ description: "User's phone number" })
+  @Field()
   phone: string;
 
-  @ApiProperty({ description: "User's name", required: false })
+  @Field({ nullable: true })
   name?: string;
 
-  @ApiProperty({ description: "User's email address", required: false })
+  @Field({ nullable: true })
   email?: string;
 
-  @ApiProperty({
-    description: "URL to the user's avatar image",
-    required: false,
-  })
+  @Field({ nullable: true })
   avatarUrl?: string;
 
-  @ApiProperty({ description: "User's biography", required: false })
+  @Field({ nullable: true })
   bio?: string;
 
-  @ApiProperty({ description: 'Timestamp when the user was created' })
+  @Field()
   createdAt: Date;
 
-  @ApiProperty({ description: 'Timestamp when the user was last updated' })
+  @Field()
   updatedAt: Date;
+}
+
+@InputType()
+export class UpdateUserProfileInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  bio?: string;
 }

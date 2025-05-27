@@ -1,92 +1,88 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  BadRequestException,
-  Inject, // Import Inject
-} from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RequestOtpDto } from './dto/request-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
-import * as crypto from 'crypto';
+import { RequestOtpInput } from './dto/request-otp.dto';
+import { VerifyOtpAndRegisterUserInput } from './dto/verify-otp.dto';
+import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager'; // Import CacheManager and Cache type
+import { User } from '@prisma/client';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache, // Inject CacheManager
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async requestOtp(requestOtpDto: RequestOtpDto): Promise<{ message: string }> {
-    const { phone } = requestOtpDto;
+  async requestOtp(phone: string): Promise<boolean> {
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const otpKey = `otp:${phone}`;
 
-    // Generate a 6-digit OTP
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const otpKey = `otp:${phone}`; // Key for Redis
+    // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
+    await this.cacheManager.set(otpKey, otpCode, 300);
 
-    // Save OTP to Redis with a 5-minute expiry (in seconds)
-    try {
-      // Find or create user by phone number (still needed to get user ID for JWT later)
-      let user = await this.prisma.user.findUnique({ where: { phone } });
-
-      if (!user) {
-        user = await this.prisma.user.create({ data: { phone } });
-      }
-
-      // Store OTP in Redis
-      await this.cacheManager.set(otpKey, otp, 5 * 60 * 1000); // TTL in milliseconds
-
-      // TODO: Integrate with SMS gateway here
-      console.log(`Sending OTP ${otp} to ${phone}`); // Placeholder for now
-
-      return { message: 'OTP requested successfully' };
-    } catch (error) {
-      console.error('Error requesting OTP:', error);
-      throw new InternalServerErrorException('Failed to request OTP');
+    // Find or create user by phone number (still in DB for user data persistence)
+    let user = await this.prisma.user.findUnique({ where: { phone } });
+    if (!user) {
+      user = await this.prisma.user.create({ data: { phone } });
     }
+
+    console.log(`OTP for ${phone}: ${otpCode} (stored in Redis)`); // Log OTP for testing purposes
+    return true;
   }
 
-  async verifyOtp(
-    verifyOtpDto: VerifyOtpDto,
-  ): Promise<{ accessToken: string }> {
-    const { phone, otp } = verifyOtpDto;
-    const otpKey = `otp:${phone}`; // Key for Redis
+  async verifyOtpAndRegisterUser(data: VerifyOtpAndRegisterUserInput) {
+    const { phone, otp, name, password } = data;
+    const otpKey = `otp:${phone}`;
 
-    try {
-      const user = await this.prisma.user.findUnique({ where: { phone } });
+    const storedOtp = await this.cacheManager.get<string>(otpKey);
 
-      if (!user) {
-        throw new BadRequestException('Invalid phone number or OTP');
-      }
-
-      // Retrieve OTP from Redis
-      const storedOtp = await this.cacheManager.get<string>(otpKey);
-
-      if (!storedOtp || storedOtp !== otp) {
-        throw new BadRequestException('Invalid phone number or OTP');
-      }
-
-      // Remove OTP from Redis after successful verification
-      await this.cacheManager.del(otpKey);
-
-      // Generate JWT
-      const payload = { sub: user.id, phone: user.phone }; // Payload for JWT
-      const accessToken = this.jwtService.sign(payload);
-
-      return { accessToken }; // Return the JWT
-    } catch (error) {
-      console.error('Error verifying OTP:', error);
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to verify OTP');
+    if (!storedOtp || storedOtp !== otp) {
+      throw new BadRequestException('Invalid or expired OTP.');
     }
+
+    // OTP is valid, remove it from cache to prevent reuse
+    await this.cacheManager.del(otpKey);
+
+    let user = await this.prisma.user.findUnique({ where: { phone } });
+    if (!user) {
+      throw new BadRequestException('User not found.'); // Should not happen if requestOtp was called
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user with name and hashed password
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { name, password: hashedPassword },
+    });
+
+    return updatedUser;
   }
 
-  // The login logic is essentially the verifyOtp process in this flow
-  async login(verifyOtpDto: VerifyOtpDto): Promise<{ accessToken: string }> {
-    return this.verifyOtp(verifyOtpDto);
+  async login(phone: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { phone } });
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    const payload = { phone: user.phone, sub: user.id };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user: user,
+    };
+  }
+
+  async validateUser(userId: string): Promise<User> {
+    return this.prisma.user.findUnique({ where: { id: userId } });
   }
 }

@@ -1,55 +1,168 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { UserProfileDto } from '../../users/dto/user-profile.dto'; // Assuming UserProfileDto is suitable for createdBy
-import { JointRunParticipantDto } from './joint-run-participant.dto'; // Forward declaration
+import { ObjectType, Field, InputType, Float } from '@nestjs/graphql';
+import { IsString, IsOptional, Length, IsDate, IsNumber, IsEnum } from 'class-validator';
+import { JointRun, JointRunParticipant, User, RunnerCard } from '@prisma/client';
+import { UserProfileType } from '../../src/users/dto/user-profile.dto';
+import { RunnerCardType } from '../../src/runner-cards/dto/runner-card.dto';
 
-export class JointRunDto {
-  @ApiProperty({ description: 'Unique identifier of the joint run' })
+export enum JointRunParticipantStatus {
+  INTERESTED = 'INTERESTED',
+  GOING = 'GOING',
+  COMPLETED = 'COMPLETED',
+}
+
+@ObjectType()
+export class JointRunType implements JointRun {
+  @Field()
   id: string;
 
-  @ApiProperty({ description: 'Title of the joint run' })
+  @Field()
   title: string;
 
-  @ApiProperty({ description: 'Description of the joint run', required: false })
+  @Field({ nullable: true })
   description?: string;
 
-  @ApiProperty({ description: 'Date and time of the joint run' })
+  @Field()
   dateTime: Date;
 
-  @ApiProperty({ description: 'Location of the joint run', required: false })
+  @Field({ nullable: true })
   location?: string;
 
-  @ApiProperty({
-    description: 'Latitude of the joint run location',
-    required: false,
-  })
+  @Field(() => Float, { nullable: true })
   latitude?: number;
 
-  @ApiProperty({
-    description: 'Longitude of the joint run location',
-    required: false,
-  })
+  @Field(() => Float, { nullable: true })
   longitude?: number;
 
-  @ApiProperty({
-    description: 'Unique identifier of the user who created the run',
-  })
+  @Field()
   createdById: string;
 
-  @ApiProperty({
-    description: 'User who created the run',
-    type: UserProfileDto,
-  })
-  createdBy: UserProfileDto;
+  @Field(() => UserProfileType)
+  createdBy: User; // Populated relation
 
-  @ApiProperty({
-    description: 'List of participants in the run',
-    type: [JointRunParticipantDto],
-  })
-  participants: JointRunParticipantDto[];
-
-  @ApiProperty({ description: 'Timestamp when the joint run was created' })
+  @Field()
   createdAt: Date;
 
-  @ApiProperty({ description: 'Timestamp when the joint run was last updated' })
+  @Field()
   updatedAt: Date;
+
+  @Field(() => [JointRunParticipantType])
+  participants?: JointRunParticipant[]; // Populated relation
+}
+
+@InputType()
+export class CreateJointRunInput {
+  @Field()
+  @IsString()
+  @Length(1, 100)
+  title: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  description?: string;
+
+  @Field()
+  @IsDate()
+  dateTime: Date;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  location?: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+}
+
+@InputType()
+export class UpdateJointRunInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  title?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  description?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsDate()
+  dateTime?: Date;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  location?: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+}
+
+@ObjectType()
+export class JointRunParticipantType implements JointRunParticipant {
+  @Field()
+  id: string;
+
+  @Field()
+  userId: string;
+
+  @Field(() => UserProfileType)
+  user: User; // Populated relation
+
+  @Field()
+  jointRunId: string;
+
+  @Field(() => JointRunType)
+  jointRun: JointRun; // Populated relation
+
+  @Field({ nullable: true })
+  runnerCardId?: string;
+
+  @Field(() => RunnerCardType, { nullable: true })
+  runnerCard?: RunnerCard; // Populated relation
+
+  @Field()
+  joinedAt: Date;
+
+  @Field(() => String)
+  @IsEnum(JointRunParticipantStatus)
+  status: string;
+}
+
+@InputType()
+export class JoinRunInput {
+  @Field()
+  @IsString()
+  jointRunId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  runnerCardId?: string;
+
+  @Field(() => String, { defaultValue: JointRunParticipantStatus.INTERESTED })
+  @IsOptional()
+  @IsEnum(JointRunParticipantStatus)
+  status?: JointRunParticipantStatus;
 }

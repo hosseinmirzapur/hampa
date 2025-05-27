@@ -1,11 +1,24 @@
-import { IsPhoneNumber, IsString, IsNotEmpty, Length } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
+import { IsPhoneNumber, IsString, Length, IsOptional } from 'class-validator';
 
-export class VerifyOtpDto {
-  @IsPhoneNumber('IR', { message: 'Invalid phone number format' }) // 'ZZ' allows any country code, adjust if needed
+@InputType()
+export class VerifyOtpAndRegisterUserInput {
+  @Field()
+  @IsPhoneNumber('RU') // Assuming Russian phone numbers. Adjust as needed.
   phone: string;
 
+  @Field()
   @IsString()
-  @IsNotEmpty()
-  @Length(6, 6, { message: 'OTP must be a 6-digit string' })
+  @Length(6, 6) // Assuming 6-digit OTP
   otp: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @Field()
+  @IsString()
+  @Length(6, 20, { message: 'Password must be between 6 and 20 characters.' })
+  password: string;
 }

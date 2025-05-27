@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { JointRunsService } from './joint-runs/joint-runs.service';
-import { JointRunsController } from './joint-runs/joint-runs.controller';
+import { JointRunsResolver } from './joint-runs.resolver';
+import { JointRunsService } from './joint-runs.service';
 
 @Module({
-  providers: [JointRunsService],
-  controllers: [JointRunsController]
+  providers: [JointRunsResolver, JointRunsService]
 })
 export class JointRunsModule {}

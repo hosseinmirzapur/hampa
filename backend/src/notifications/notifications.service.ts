@@ -1,32 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { Notification } from '@prisma/client'; // Import Notification type from Prisma
+import { Notification } from '@prisma/client';
+import { CreateNotificationInput } from './dto/notification.dto';
 
 @Injectable()
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(
-    userId: string,
-    createNotificationDto: CreateNotificationDto,
-  ): Promise<Notification> {
-    return this.prisma.notification.create({
-      data: {
-        ...createNotificationDto,
-        userId: userId, // Link the notification to the user
-      },
-    });
+  async createNotification(data: CreateNotificationInput): Promise<Notification> {
+    return this.prisma.notification.create({ data });
   }
 
-  async findAllForUser(userId: string): Promise<Notification[]> {
+  async findUserNotifications(userId: string): Promise<Notification[]> {
     return this.prisma.notification.findMany({
       where: { userId },
-      orderBy: {
-        createdAt: 'desc', // Order by most recent
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  // TODO: Implement method to mark notifications as read
+  async markNotificationAsRead(notificationId: string): Promise<Notification> {
+    const notification = await this.prisma.notification.findUnique({ where: { id: notificationId } });
+    if (!notification) {
+      throw new NotFoundException(`Notification with ID ${notificationId} not found.`);
+    }
+    return this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { isRead: true },
+    });
+  }
 }
