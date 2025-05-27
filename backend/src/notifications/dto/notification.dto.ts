@@ -16,11 +16,11 @@ export class NotificationType implements Notification {
   @Field()
   message: string;
 
-  @Field({ nullable: true })
-  relatedEntityId?: string;
+  @Field(() => String, { nullable: true })
+  relatedEntityId: string | null;
 
-  @Field({ nullable: true })
-  relatedEntityType?: string;
+  @Field(() => String, { nullable: true })
+  relatedEntityType: string | null;
 
   @Field()
   isRead: boolean;

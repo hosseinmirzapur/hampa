@@ -1,10 +1,16 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { JointRunsService } from './joint-runs.service';
-import { JointRunType, CreateJointRunInput, UpdateJointRunInput, JoinRunInput, JointRunParticipantType } from './dto/joint-run.dto';
+import {
+  JointRunType,
+  CreateJointRunInput,
+  UpdateJointRunInput,
+  JoinRunInput,
+  JointRunParticipantType,
+} from './dto/joint-run.dto';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User } from '@prisma/client';
+import { UserProfileType } from '../users/dto/user-profile.dto';
 
 @Resolver(() => JointRunType)
 export class JointRunsResolver {
@@ -13,7 +19,7 @@ export class JointRunsResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => JointRunType)
   async createJointRun(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserProfileType,
     @Args('createJointRunInput') createJointRunInput: CreateJointRunInput,
   ): Promise<JointRunType> {
     return this.jointRunsService.create(user.id, createJointRunInput);
@@ -24,15 +30,15 @@ export class JointRunsResolver {
     return this.jointRunsService.findAll();
   }
 
-  @Query(() => JointRunType, { name: 'jointRun' })
-  async getJointRun(@Args('id') id: string): Promise<JointRunType> {
+  @Query(() => JointRunType, { name: 'jointRun', nullable: true })
+  async getJointRun(@Args('id') id: string): Promise<JointRunType | null> {
     return this.jointRunsService.findOne(id);
   }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => JointRunType)
   async updateJointRun(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserProfileType,
     @Args('id') id: string,
     @Args('updateJointRunInput') updateJointRunInput: UpdateJointRunInput,
   ): Promise<JointRunType> {
@@ -42,7 +48,7 @@ export class JointRunsResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => JointRunType)
   async deleteJointRun(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserProfileType,
     @Args('id') id: string,
   ): Promise<JointRunType> {
     return this.jointRunsService.remove(id, user.id);
@@ -51,7 +57,7 @@ export class JointRunsResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => JointRunParticipantType)
   async joinRun(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserProfileType,
     @Args('joinRunInput') joinRunInput: JoinRunInput,
   ): Promise<JointRunParticipantType> {
     return this.jointRunsService.joinRun(user.id, joinRunInput);
@@ -60,7 +66,7 @@ export class JointRunsResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => JointRunParticipantType)
   async leaveRun(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserProfileType,
     @Args('jointRunId') jointRunId: string,
   ): Promise<JointRunParticipantType> {
     return this.jointRunsService.leaveRun(user.id, jointRunId);
@@ -68,13 +74,17 @@ export class JointRunsResolver {
 
   @UseGuards(GqlAuthGuard)
   @Query(() => [JointRunType], { name: 'myOrganizedRuns' })
-  async getMyOrganizedRuns(@CurrentUser() user: User): Promise<JointRunType[]> {
+  async getMyOrganizedRuns(
+    @CurrentUser() user: UserProfileType,
+  ): Promise<JointRunType[]> {
     return this.jointRunsService.findMyOrganizedRuns(user.id);
   }
 
   @UseGuards(GqlAuthGuard)
   @Query(() => [JointRunParticipantType], { name: 'myJoinedRuns' })
-  async getMyJoinedRuns(@CurrentUser() user: User): Promise<JointRunParticipantType[]> {
+  async getMyJoinedRuns(
+    @CurrentUser() user: UserProfileType,
+  ): Promise<JointRunParticipantType[]> {
     return this.jointRunsService.findMyJoinedRuns(user.id);
   }
 }

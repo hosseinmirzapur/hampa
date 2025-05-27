@@ -5,24 +5,11 @@ import { DayOfWeek, TimeOfDay } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { OtpInput } from "../components/auth/OtpInput"; // Import OtpInput component
 import { toast } from "react-toastify";
-import { gql, useMutation } from '@apollo/client';
-
-const CREATE_RUNNER_CARD_MUTATION = gql`
-  mutation CreateRunnerCard($input: CreateRunnerCardInput!) {
-    createRunnerCard(input: $input) {
-      id
-      name
-      location
-      days
-      time
-      phoneNumber
-      isPhoneNumberPublic
-    }
-  }
-`;
+import { CREATE_RUNNER_CARD_MUTATION } from "../graphql/runnerCard.graphql"; // Import from graphql file
+import { useRunnerCards } from "../hooks/useRunnerCards"; // Ensure this is imported
 
 const CreateCard: React.FC = () => {
-  const [isCreating, setIsCreating] = useState(false);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false); // Renamed for clarity
   const { createCard } = useRunnerCards();
   const {
     user,
@@ -35,55 +22,52 @@ const CreateCard: React.FC = () => {
 
   const [step, setStep] = useState<"form" | "otp-verification">("form");
   const [formData, setFormData] = useState<{
-    name: string;
     location: string;
     days: DayOfWeek[];
     time: TimeOfDay;
     phoneNumber: string;
     isPhoneNumberPublic: boolean;
   } | null>(null);
-  const [createCardMutation, { loading: isCreatingCard, error: createCardError, data: createCardData }] = useMutation(CREATE_RUNNER_CARD_MUTATION);
 
-  // Effect to handle navigation after successful OTP verification
+  // Effect to handle card creation after successful OTP verification
   useEffect(() => {
-    if (user && formData && step === "otp-verification") {
-      // User is now authenticated after OTP verification, proceed with card creation
-      createCardMutation({
-        variables: {
-          input: {
-            name: formData.name,
+    const handleCardCreation = async () => {
+      if (user && formData && step === "otp-verification") {
+        setIsSubmittingForm(true); // Set loading for card creation
+        try {
+          const newCard = await createCard({
             location: formData.location,
             days: formData.days,
             time: formData.time,
             phoneNumber: formData.phoneNumber,
             isPhoneNumberPublic: formData.isPhoneNumberPublic,
-          },
-        },
-      });
-    }
-  }, [user, formData, step, createCardMutation]);
-
-  useEffect(() => {
-    if (createCardData?.createRunnerCard) {
-      navigate(`/app/cards/${createCardData.createRunnerCard.id}`);
-    } else if (createCardError) {
-        toast.error("خطا در ایجاد کارت");
-        setIsCreating(false);
+          });
+          if (newCard) {
+            toast.success("کارت با موفقیت ایجاد شد");
+            navigate(`/app/cards/${newCard.id}`);
+          } else {
+            toast.error("خطا در ایجاد کارت");
+          }
+        } catch (error: any) {
+          console.error("Error creating card after OTP:", error);
+          toast.error("خطا در ایجاد کارت: " + error.message);
+        } finally {
+          setIsSubmittingForm(false);
+        }
       }
-    }
-  }, [user, formData, step, createCard, navigate]); // Add dependencies
+    };
+    handleCardCreation();
+  }, [user, formData, step, createCard, navigate]);
 
   const handleFormSubmit = async (
-    name: string,
     location: string,
     days: DayOfWeek[],
     time: TimeOfDay,
     phoneNumber: string,
     isPhoneNumberPublic: boolean
   ) => {
-    setIsCreating(true);
+    setIsSubmittingForm(true); // Set loading for form submission
     setFormData({
-      name,
       location,
       days,
       time,
@@ -95,34 +79,34 @@ const CreateCard: React.FC = () => {
       // Check if the user is logged in and using the same phone number
       if (user && user.phoneNumber === phoneNumber) {
         // User is logged in and using their verified phone number
-        createCardMutation({
-          variables: {
-            input: {
-              name,
-              location,
-              days,
-              time,
-              phoneNumber,
-              isPhoneNumberPublic,
-            },
-          },
+        const newCard = await createCard({
+          location,
+          days,
+          time,
+          phoneNumber,
+          isPhoneNumberPublic,
         });
-        if (card) {
-          navigate(`/app/cards/${card.id}`); // Navigate to card details page
+        if (newCard) {
+          toast.success("کارت با موفقیت ایجاد شد");
+          navigate(`/app/cards/${newCard.id}`);
         } else {
           toast.error("خطا در ایجاد کارت");
-          setIsCreating(false);
         }
       } else {
         // User is either not logged in or using a different phone number
         // Need to verify the phone number with OTP
-        await login(phoneNumber);
-        setStep("otp-verification");
+        const loginSuccess = await login(phoneNumber);
+        if (loginSuccess) {
+          setStep("otp-verification");
+        } else {
+          toast.error("خطا در ارسال کد تایید");
+        }
       }
-    } catch (error) {
-      console.error("Error creating card:", error);
-      toast.error("خطا در ایجاد کارت");
-      setIsCreating(false);
+    } catch (error: any) {
+      console.error("Error during form submission:", error);
+      toast.error("خطا در ایجاد کارت: " + error.message);
+    } finally {
+      setIsSubmittingForm(false); // Reset loading after form submission attempt
     }
   };
 
@@ -159,7 +143,10 @@ const CreateCard: React.FC = () => {
         <h1 className="text-2xl font-bold mb-6">ایجاد کارت جدید</h1>
 
         {step === "form" ? (
-          <CardForm onSubmit={handleFormSubmit} isLoading={isCreating || isCreatingCard} />
+          <CardForm
+            onSubmit={handleFormSubmit}
+            isLoading={isSubmittingForm || isAuthLoading}
+          />
         ) : (
           <div className="space-y-6">
             <p className="text-center">
@@ -173,6 +160,7 @@ const CreateCard: React.FC = () => {
                 timeLeft={phoneVerification?.timeLeft || 0} // Pass time left
                 attemptsLeft={phoneVerification?.attemptsLeft || 0} // Pass attempts left
                 onResendClick={handleResendOtp} // Pass resend handler
+                phoneNumber={phoneVerification.phoneNumber} // Pass phoneNumber
               />
             </div>
             {phoneVerification?.error && ( // Display OTP error message

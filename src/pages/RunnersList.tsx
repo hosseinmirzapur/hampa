@@ -16,14 +16,18 @@ const RunnersList: React.FC = () => {
     setIsInterestLoading(true);
 
     try {
-      const success = expressInterest(cardId);
+      const success = await expressInterest(cardId); // Await the async call
 
       if (success) {
         // Show success feedback
         toast.success("علاقه‌مندی شما با موفقیت ثبت شد");
+      } else {
+        toast.error("خطا در ثبت علاقه‌مندی"); // Add error toast for non-success
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Add type for error
       console.error("Error expressing interest:", error);
+      toast.error("خطا در ثبت علاقه‌مندی: " + error.message); // Use toast with error message
     } finally {
       setIsInterestLoading(false);
     }

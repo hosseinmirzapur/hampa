@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 
 // Define schema for the form
 const cardFormSchema = z.object({
-  name: z.string().min(2, "نام باید حداقل 2 حرف باشد"),
   location: z.string().min(3, "لطفا محل دویدن را وارد کنید"),
   time: z.string().min(1, "لطفا ساعت تقریبی را انتخاب کنید"),
   phoneNumber: z
@@ -23,7 +22,6 @@ type CardFormValues = z.infer<typeof cardFormSchema>;
 
 interface CardFormProps {
   onSubmit: (
-    name: string,
     location: string,
     days: DayOfWeek[],
     time: TimeOfDay,
@@ -56,7 +54,6 @@ export const CardForm: React.FC<CardFormProps> = ({
   } = useForm<CardFormValues>({
     resolver: zodResolver(cardFormSchema),
     defaultValues: {
-      name: user?.name || "",
       phoneNumber: user?.phoneNumber || "",
       isPhoneNumberPublic: false,
     },
@@ -93,7 +90,6 @@ export const CardForm: React.FC<CardFormProps> = ({
       return;
     }
     onSubmit(
-      data.name,
       data.location,
       selectedDays,
       data.time as TimeOfDay,
@@ -108,24 +104,7 @@ export const CardForm: React.FC<CardFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-      <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          اسم یا لقب
-        </label>
-        <input
-          id="name"
-          type="text"
-          {...register("name")}
-          className={`input ${errors.name ? "border-error focus:ring-error" : ""}`}
-        />
-        {errors.name && (
-          <p className="mt-1 text-error text-sm">{errors.name.message}</p>
-        )}
-      </div>
-
+      {/* Removed 'name' field as it's not part of CreateRunnerCardInput */}
       <div>
         <label
           htmlFor="location"

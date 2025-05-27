@@ -1,4 +1,5 @@
-import { Module, CacheModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -10,7 +11,7 @@ import { JointRunsModule } from './joint-runs/joint-runs.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
-import * as redisStore from 'cache-manager-redis-store';
+import redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [

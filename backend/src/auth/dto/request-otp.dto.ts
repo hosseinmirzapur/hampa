@@ -4,6 +4,6 @@ import { IsPhoneNumber } from 'class-validator';
 @InputType()
 export class RequestOtpInput {
   @Field()
-  @IsPhoneNumber('RU') // Assuming Russian phone numbers. Adjust as needed.
+  @IsPhoneNumber('IR')
   phone: string;
 }

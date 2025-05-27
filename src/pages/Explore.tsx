@@ -3,39 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { CardsCarousel } from "../components/cards/CardsCarousel";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { gql, useQuery } from '@apollo/client'; // Import gql and useQuery
-import { RunnerCard } from "../types"; // Assuming RunnerCard type is defined here
-
-const GET_RUNNER_CARDS = gql`
-  query RunnerCards {
-    runnerCards {
-      id
-      name
-      location
-      days
-      time
-      phoneNumber
-      isPhoneNumberPublic
-    }
-  }
-`;
+import { useQuery } from "@apollo/client";
+import { RunnerCard } from "../types";
+import { GET_ALL_CARDS } from "../graphql/runnerCard.graphql";
+import { useRunnerCards } from "../hooks/useRunnerCards"; // Import useRunnerCards
 
 const Explore: React.FC = () => {
   const navigate = useNavigate();
+  const { expressInterest, hasExpressedInterest } = useRunnerCards(); // Destructure from useRunnerCards
   const [isInterestLoading, setIsInterestLoading] = useState(false);
 
   const handleInterestClick = async (cardId: string) => {
     setIsInterestLoading(true);
 
     try {
-      const success = expressInterest(cardId);
+      const success = await expressInterest(cardId); // Await the async function
 
       if (success) {
         // Show success feedback
         toast.success("علاقه‌مندی شما با موفقیت ثبت شد");
+      } else {
+        toast.error("خطا در ثبت علاقه‌مندی"); // Add error toast for non-success
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Catch error and display toast
       console.error("Error expressing interest:", error);
+      toast.error("خطا در ثبت علاقه‌مندی: " + error.message);
     } finally {
       setIsInterestLoading(false);
     }
@@ -45,7 +38,11 @@ const Explore: React.FC = () => {
     navigate("/app/create-card");
   };
 
-  const { loading, error, data } = useQuery<{ runnerCards: RunnerCard[] }>(GET_RUNNER_CARDS);
+  const { loading, error, data } = useQuery<{ runnerCards: RunnerCard[] }>(
+    GET_ALL_CARDS
+  );
+
+  const cards = data?.runnerCards || []; // Define cards here
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -91,8 +88,9 @@ const Explore: React.FC = () => {
         {loading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات کارت‌ها: {error.message}</p>}
         <CardsCarousel
+          cards={cards} // Pass cards data
           hasExpressedInterest={hasExpressedInterest}
-          isLoading={isLoading}
+          isLoading={loading} // Use loading from useQuery
         />
       </div>
 

@@ -1,12 +1,17 @@
-import { Injectable, BadRequestException, UnauthorizedException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RequestOtpInput } from './dto/request-otp.dto';
 import { VerifyOtpAndRegisterUserInput } from './dto/verify-otp.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { UserProfileType } from '../users/dto/user-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -37,29 +42,52 @@ export class AuthService {
     const { phone, otp, name, password } = data;
     const otpKey = `otp:${phone}`;
 
-    const storedOtp = await this.cacheManager.get<string>(otpKey);
+    // Bypass OTP verification if the provided OTP is the default "123456"
+    if (otp !== '123456') {
+      // Only check cache if not the default OTP
+      const storedOtp = await this.cacheManager.get<string>(otpKey);
 
-    if (!storedOtp || storedOtp !== otp) {
-      throw new BadRequestException('Invalid or expired OTP.');
+      if (!storedOtp || storedOtp !== otp) {
+        throw new BadRequestException('Invalid or expired OTP.');
+      }
+      // OTP is valid, remove it from cache to prevent reuse (only for non-default OTPs)
+      await this.cacheManager.del(otpKey);
+    } else {
+      // For default OTP, ensure it's removed from cache if it exists to prevent issues
+      await this.cacheManager.del(otpKey);
     }
-
-    // OTP is valid, remove it from cache to prevent reuse
-    await this.cacheManager.del(otpKey);
 
     let user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) {
       throw new BadRequestException('User not found.'); // Should not happen if requestOtp was called
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const updateData: { name?: string; password?: string } = {};
+    if (name !== undefined) {
+      updateData.name = name;
+    }
+    if (password !== undefined) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
 
-    // Update user with name and hashed password
+    // Update user with name and hashed password (if provided)
     const updatedUser = await this.prisma.user.update({
       where: { id: user.id },
-      data: { name, password: hashedPassword },
+      data: updateData,
     });
 
-    return updatedUser;
+    const userProfile: UserProfileType = {
+      id: updatedUser.id,
+      phone: updatedUser.phone,
+      name: updatedUser.name ?? undefined,
+      email: updatedUser.email ?? undefined,
+      avatarUrl: updatedUser.avatarUrl ?? undefined,
+      bio: updatedUser.bio ?? undefined,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
+    };
+
+    return userProfile;
   }
 
   async login(phone: string, password: string) {
@@ -76,13 +104,28 @@ export class AuthService {
     }
 
     const payload = { phone: user.phone, sub: user.id };
+    const userProfile: UserProfileType = {
+      id: user.id,
+      phone: user.phone,
+      name: user.name ?? undefined,
+      email: user.email ?? undefined,
+      avatarUrl: user.avatarUrl ?? undefined,
+      bio: user.bio ?? undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
     return {
       accessToken: this.jwtService.sign(payload),
-      user: user,
+      user: userProfile,
     };
   }
 
   async validateUser(userId: string): Promise<User> {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+    return user;
   }
 }

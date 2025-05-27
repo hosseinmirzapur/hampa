@@ -10,16 +10,16 @@ export class UserProfileType implements Partial<User> {
   @Field()
   phone: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   name?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   email?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   avatarUrl?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   bio?: string;
 
   @Field()

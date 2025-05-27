@@ -4,7 +4,7 @@ import { IsPhoneNumber, IsString } from 'class-validator';
 @InputType()
 export class LoginInput {
   @Field()
-  @IsPhoneNumber('RU') // Assuming Russian phone numbers. Adjust as needed.
+  @IsPhoneNumber('IR')
   phone: string;
 
   @Field()

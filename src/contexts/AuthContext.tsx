@@ -8,13 +8,43 @@ import React, {
 import { User } from "../types";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { generateDefaultUser } from "../utils/mockData";
+import {
+  gql,
+  useMutation,
+  ApolloClient,
+  useApolloClient,
+} from "@apollo/client";
+
+const REQUEST_OTP_MUTATION = gql`
+  mutation RequestOtp($requestOtpInput: RequestOtpInput!) {
+    requestOtp(requestOtpInput: $requestOtpInput)
+  }
+`;
+
+const VERIFY_OTP_MUTATION = gql`
+  mutation VerifyOtpAndRegisterUser(
+    $verifyOtpAndRegisterUserInput: VerifyOtpAndRegisterUserInput!
+  ) {
+    verifyOtpAndRegisterUser(
+      verifyOtpAndRegisterUserInput: $verifyOtpAndRegisterUserInput
+    ) {
+      id
+      phone
+      name
+      email
+      avatarUrl
+      bio
+    }
+  }
+`;
 
 interface PhoneVerification {
   phoneNumber: string;
-  isVerifying?: boolean;
   timeLeft: number;
   attemptsLeft: number;
   error?: ReactNode;
+  verifyLoading: boolean;
+  resendLoading: boolean;
 }
 
 interface AuthContextType {
@@ -27,6 +57,8 @@ interface AuthContextType {
   updateUser: (updatedUser: Partial<User>) => void;
   phoneVerification: PhoneVerification;
   resetVerification: () => void;
+  verifyLoading: boolean;
+  resendLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,17 +74,22 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const client = useApolloClient();
   const [user, setUser] = useLocalStorage<User | null>("hampa-user", null);
   const [isLoading, setIsLoading] = useState(true);
   const [phoneVerification, setPhoneVerification] = useState<PhoneVerification>(
     {
       phoneNumber: "",
-      isVerifying: false,
       timeLeft: 0,
       attemptsLeft: 3,
-      error: null, // Initialize error state
+      error: null,
+      verifyLoading: false,
+      resendLoading: false,
     }
   );
+
+  const [requestOtpMutation] = useMutation(REQUEST_OTP_MUTATION);
+  const [verifyOtpAndRegisterUserMutation] = useMutation(VERIFY_OTP_MUTATION);
 
   // Handle countdown timer for OTP verification
   useEffect(() => {
@@ -89,33 +126,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const resetVerification = () => {
     setPhoneVerification({
       phoneNumber: "",
-      isVerifying: false,
       timeLeft: 0,
       attemptsLeft: 3,
-      error: null, // Reset error state
+      error: null,
+      verifyLoading: false,
+      resendLoading: false,
     });
   };
 
   const login = async (phoneNumber: string): Promise<boolean> => {
     try {
-      // In a real app, this would send an OTP to the phoneNumber
-      // For this MVP, we'll simulate the process
       setPhoneVerification((prev) => ({
         ...prev,
         phoneNumber,
-        isVerifying: true,
-        timeLeft: 180, // 3 minutes
+        resendLoading: true,
+        timeLeft: 180,
         attemptsLeft: 3,
-        error: null, // Clear previous errors on new login attempt
+        error: null,
       }));
-      return true;
+
+      const { data, errors } = await requestOtpMutation({
+        variables: { requestOtpInput: { phone: phoneNumber } },
+      });
+
+      setPhoneVerification((prev) => ({ ...prev, resendLoading: false }));
+
+      if (data?.requestOtp) {
+        console.log("requestOtp mutation successful, returning true");
+        return true;
+      } else {
+        const errorMessage = errors?.[0]?.message || "خطا در ارسال کد تایید";
+        setPhoneVerification((prev) => ({
+          ...prev,
+          error: errorMessage,
+        }));
+        console.log("requestOtp mutation failed, returning false");
+        return false;
+      }
     } catch (error: unknown) {
-      // Use unknown type for catch clause variable
       console.error("Login error:", error);
       setPhoneVerification((prev) => ({
         ...prev,
-        isVerifying: false,
-        error: error instanceof Error ? error.message : "خطا در ارسال کد تایید", // Safely access error message
+        resendLoading: false,
+        error: error instanceof Error ? error.message : "خطا در ارسال کد تایید",
       }));
       return false;
     }
@@ -123,43 +176,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const verifyOtp = async (otp: string): Promise<boolean> => {
     try {
-      // In a real app, this would verify the OTP with a backend service
-      // For this MVP, we'll accept any 6-digit OTP (mock "123456")
-
       if (phoneVerification.attemptsLeft <= 0) {
         setPhoneVerification((prev) => ({
           ...prev,
-          error: "تعداد تلاش‌های مجاز به پایان رسیده است.", // Set error for no attempts left
+          error: "تعداد تلاش‌های مجاز به پایان رسیده است.",
         }));
         return false;
       }
 
-      if (otp === "123456") {
-        // Check if user exists, if not create a new user
-        if (!user || user.phoneNumber !== phoneVerification.phoneNumber) {
-          const newUser = generateDefaultUser(phoneVerification.phoneNumber);
-          setUser(newUser);
-        }
+      setPhoneVerification((prev) => ({ ...prev, verifyLoading: true }));
 
-        resetVerification();
-        return true;
+      // Keep the mock "123456" check for now as requested by the user
+      if (otp === "123456") {
+        const { data, errors } = await verifyOtpAndRegisterUserMutation({
+          variables: {
+            verifyOtpAndRegisterUserInput: {
+              phone: phoneVerification.phoneNumber,
+              otp,
+            },
+          },
+        });
+
+        setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
+
+        if (data?.verifyOtpAndRegisterUser) {
+          const userProfile = data.verifyOtpAndRegisterUser;
+          setUser(userProfile);
+          resetVerification();
+          return true;
+        } else {
+          const errorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
+          setPhoneVerification((prev) => ({
+            ...prev,
+            attemptsLeft: prev.attemptsLeft - 1,
+            timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft,
+            error: errorMessage,
+          }));
+          return false;
+        }
       } else {
-        // Decrement attempts and set error
+        setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
+        // Decrement attempts and set error for incorrect mock OTP
         setPhoneVerification((prev) => ({
           ...prev,
           attemptsLeft: prev.attemptsLeft - 1,
-          timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft, // Set cooldown if out of attempts
-          error: "کد تایید اشتباه است.", // Set error for incorrect OTP
+          timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft,
+          error: "کد تایید اشتباه است.",
         }));
         return false;
       }
     } catch (error: unknown) {
-      // Use unknown type for catch clause variable
       console.error("OTP verification error:", error);
       setPhoneVerification((prev) => ({
         ...prev,
-        isVerifying: false,
-        error: error instanceof Error ? error.message : "خطا در تایید کد تایید", // Safely access error message
+        verifyLoading: false,
+        error: error instanceof Error ? error.message : "خطا در تایید کد تایید",
       }));
       return false;
     }
@@ -189,6 +260,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         updateUser,
         phoneVerification,
         resetVerification,
+        verifyLoading: phoneVerification.verifyLoading,
+        resendLoading: phoneVerification.resendLoading,
       }}
     >
       {children}

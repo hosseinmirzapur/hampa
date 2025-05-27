@@ -9,35 +9,25 @@ export type User = {
   subscriptionExpiryDate: string | null;
 };
 
-export type TimeOfDay = 
-  | 'صبح زود' 
-  | 'صبح' 
-  | 'ظهر' 
-  | 'بعد از ظهر' 
-  | 'عصر' 
-  | 'شب';
+export type TimeOfDay = "صبح زود" | "صبح" | "ظهر" | "بعد از ظهر" | "عصر" | "شب";
 
-export type DayOfWeek = 
-  | 'شنبه' 
-  | 'یکشنبه' 
-  | 'دوشنبه' 
-  | 'سه‌شنبه' 
-  | 'چهارشنبه' 
-  | 'پنج‌شنبه' 
-  | 'جمعه';
+export type DayOfWeek =
+  | "شنبه"
+  | "یکشنبه"
+  | "دوشنبه"
+  | "سه‌شنبه"
+  | "چهارشنبه"
+  | "پنج‌شنبه"
+  | "جمعه";
 
 export type RunnerCard = {
   id: string;
-  creatorId: string;
-  creatorName: string;
-  creatorProfilePicture: string | null;
-  location: string;
-  days: DayOfWeek[];
-  time: TimeOfDay;
-  phoneNumber: string;
-  isPhoneNumberPublic: boolean;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  userId: string;
   createdAt: string;
-  interestedUsers: string[]; // Array of user IDs
+  updatedAt: string;
 };
 
 export type Notification = {

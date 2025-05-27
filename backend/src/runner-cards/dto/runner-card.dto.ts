@@ -10,11 +10,11 @@ export class RunnerCardType implements RunnerCard {
   @Field()
   title: string;
 
-  @Field({ nullable: true })
-  description?: string;
+  @Field(() => String, { nullable: true })
+  description: string | null;
 
-  @Field({ nullable: true })
-  imageUrl?: string;
+  @Field(() => String, { nullable: true })
+  imageUrl: string | null;
 
   @Field()
   userId: string;

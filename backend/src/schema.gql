@@ -1,0 +1,161 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthPayload {
+  accessToken: String!
+  user: UserProfileType!
+}
+
+input CreateJointRunInput {
+  dateTime: DateTime!
+  description: String
+  latitude: Float
+  location: String
+  longitude: Float
+  title: String!
+}
+
+input CreateRunnerCardInput {
+  description: String
+  imageUrl: String
+  title: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input JoinRunInput {
+  jointRunId: String!
+  runnerCardId: String
+  status: String! = "INTERESTED"
+}
+
+type JointRunParticipantType {
+  id: String!
+  joinedAt: DateTime!
+  jointRun: JointRunType
+  jointRunId: String!
+  runnerCard: RunnerCardType
+  runnerCardId: String
+  status: String!
+  user: UserProfileType
+  userId: String!
+}
+
+type JointRunType {
+  createdAt: DateTime!
+  createdBy: UserProfileType
+  createdById: String!
+  dateTime: DateTime!
+  description: String
+  id: String!
+  latitude: Float
+  location: String
+  longitude: Float
+  participants: [JointRunParticipantType!]
+  title: String!
+  updatedAt: DateTime!
+}
+
+input LoginInput {
+  password: String!
+  phone: String!
+}
+
+type Mutation {
+  createJointRun(createJointRunInput: CreateJointRunInput!): JointRunType!
+  createRunnerCard(createRunnerCardInput: CreateRunnerCardInput!): RunnerCardType!
+  deleteJointRun(id: String!): JointRunType!
+  deleteRunnerCard(id: String!): RunnerCardType!
+  joinRun(joinRunInput: JoinRunInput!): JointRunParticipantType!
+  leaveRun(jointRunId: String!): JointRunParticipantType!
+  login(loginInput: LoginInput!): AuthPayload!
+  markNotificationAsRead(notificationId: String!): NotificationType!
+  requestOtp(requestOtpInput: RequestOtpInput!): Boolean!
+  testProtectedRoute: String!
+  updateJointRun(id: String!, updateJointRunInput: UpdateJointRunInput!): JointRunType!
+  updateRunnerCard(id: String!, updateRunnerCardInput: UpdateRunnerCardInput!): RunnerCardType!
+  updateUserProfile(updateUserProfileInput: UpdateUserProfileInput!): UserProfileType!
+  verifyOtpAndRegisterUser(verifyOtpAndRegisterUserInput: VerifyOtpAndRegisterUserInput!): UserProfileType!
+}
+
+type NotificationType {
+  createdAt: DateTime!
+  id: String!
+  isRead: Boolean!
+  message: String!
+  relatedEntityId: String
+  relatedEntityType: String
+  type: String!
+  userId: String!
+}
+
+type Query {
+  allJointRuns: [JointRunType!]!
+  allRunnerCards: [RunnerCardType!]!
+  jointRun(id: String!): JointRunType
+  me: UserProfileType!
+  myJoinedRuns: [JointRunParticipantType!]!
+  myNotifications: [NotificationType!]!
+  myOrganizedRuns: [JointRunType!]!
+  myRunnerCards: [RunnerCardType!]!
+  runnerCard(id: String!): RunnerCardType
+  user(id: String!): UserProfileType
+}
+
+input RequestOtpInput {
+  phone: String!
+}
+
+type RunnerCardType {
+  createdAt: DateTime!
+  description: String
+  id: String!
+  imageUrl: String
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input UpdateJointRunInput {
+  dateTime: DateTime
+  description: String
+  latitude: Float
+  location: String
+  longitude: Float
+  title: String
+}
+
+input UpdateRunnerCardInput {
+  description: String
+  imageUrl: String
+  title: String
+}
+
+input UpdateUserProfileInput {
+  avatarUrl: String
+  bio: String
+  email: String
+  name: String
+}
+
+type UserProfileType {
+  avatarUrl: String
+  bio: String
+  createdAt: DateTime!
+  email: String
+  id: String!
+  name: String
+  phone: String!
+  updatedAt: DateTime!
+}
+
+input VerifyOtpAndRegisterUserInput {
+  name: String
+  otp: String!
+  password: String
+  phone: String!
+}

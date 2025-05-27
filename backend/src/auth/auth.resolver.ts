@@ -3,11 +3,11 @@ import { AuthService } from './auth.service';
 import { RequestOtpInput } from './dto/request-otp.dto';
 import { VerifyOtpAndRegisterUserInput } from './dto/verify-otp.dto';
 import { LoginInput } from './dto/login.dto';
-import { AuthPayload, UserType } from './dto/auth-payload.dto';
+import { AuthPayload } from './dto/auth-payload.dto';
+import { UserProfileType } from '../users/dto/user-profile.dto';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from './guards/gql-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { User } from '@prisma/client';
 
 @Resolver()
 export class AuthResolver {
@@ -18,9 +18,14 @@ export class AuthResolver {
     return this.authService.requestOtp(requestOtpInput.phone);
   }
 
-  @Mutation(() => UserType)
-  async verifyOtpAndRegisterUser(@Args('verifyOtpAndRegisterUserInput') verifyOtpAndRegisterUserInput: VerifyOtpAndRegisterUserInput) {
-    return this.authService.verifyOtpAndRegisterUser(verifyOtpAndRegisterUserInput);
+  @Mutation(() => UserProfileType)
+  async verifyOtpAndRegisterUser(
+    @Args('verifyOtpAndRegisterUserInput')
+    verifyOtpAndRegisterUserInput: VerifyOtpAndRegisterUserInput,
+  ) {
+    return this.authService.verifyOtpAndRegisterUser(
+      verifyOtpAndRegisterUserInput,
+    );
   }
 
   @Mutation(() => AuthPayload)
@@ -30,7 +35,7 @@ export class AuthResolver {
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => String)
-  async testProtectedRoute(@CurrentUser() user: User) {
+  async testProtectedRoute(@CurrentUser() user: UserProfileType) {
     return `Hello ${user.name || user.phone}! You are authenticated.`;
   }
 }

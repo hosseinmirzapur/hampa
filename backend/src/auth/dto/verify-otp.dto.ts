@@ -4,7 +4,7 @@ import { IsPhoneNumber, IsString, Length, IsOptional } from 'class-validator';
 @InputType()
 export class VerifyOtpAndRegisterUserInput {
   @Field()
-  @IsPhoneNumber('RU') // Assuming Russian phone numbers. Adjust as needed.
+  @IsPhoneNumber('IR') // Assuming 'IR' is the country code for Iran
   phone: string;
 
   @Field()
@@ -12,13 +12,14 @@ export class VerifyOtpAndRegisterUserInput {
   @Length(6, 6) // Assuming 6-digit OTP
   otp: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @Field()
+  @Field(() => String, { nullable: true })
+  @IsOptional()
   @IsString()
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters.' })
-  password: string;
+  password?: string;
 }

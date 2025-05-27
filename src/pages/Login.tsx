@@ -7,47 +7,39 @@ import { useAuth } from "../contexts/AuthContext";
 
 const Login: React.FC = () => {
   const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [otpError, setOtpError] = useState(false);
   const navigate = useNavigate();
   const { login, verifyOtp, phoneVerification, resetVerification } = useAuth();
 
   const handlePhoneSubmit = async (phoneNumber: string) => {
-    setIsSubmitting(true);
-    setError(null);
-
+    // No need for local isSubmitting or error states, use phoneVerification
     try {
       const success = await login(phoneNumber);
 
+      console.log("Login function returned success:", success); // Add this line
+
       if (success) {
         setStep("otp");
-      } else {
-        setError("خطا در ارسال کد تایید. لطفا دوباره تلاش کنید.");
+        console.log("Step changed to OTP"); // Add this line
       }
+      // Errors are handled by AuthContext and reflected in phoneVerification.error
     } catch (error) {
-      setError("خطا در ارسال کد تایید. لطفا دوباره تلاش کنید.");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Login error:", error);
+      // AuthContext should set phoneVerification.error
     }
   };
 
   const handleOtpComplete = async (otp: string) => {
-    setIsSubmitting(true);
-    setOtpError(false);
-
+    // No need for local isSubmitting or otpError states, use phoneVerification
     try {
       const success = await verifyOtp(otp);
 
       if (success) {
         navigate("/app");
-      } else {
-        setOtpError(true);
       }
+      // Errors are handled by AuthContext and reflected in phoneVerification.error
     } catch (error) {
-      setOtpError(true);
-    } finally {
-      setIsSubmitting(false);
+      console.error("OTP verification error:", error);
+      // AuthContext should set phoneVerification.error
     }
   };
 
@@ -92,10 +84,12 @@ const Login: React.FC = () => {
               </h2>
               <PhoneInput
                 onSubmit={handlePhoneSubmit}
-                isLoading={isSubmitting}
+                loading={phoneVerification.resendLoading || false}
               />
-              {error && (
-                <p className="text-error text-sm text-center">{error}</p>
+              {step === "phone" && phoneVerification.error && (
+                <p className="text-error text-sm text-center">
+                  {phoneVerification.error}
+                </p>
               )}
             </motion.div>
           ) : (
@@ -124,15 +118,18 @@ const Login: React.FC = () => {
               {/* Note: For this MVP, the OTP code is always "123456" */}
               <OtpInput
                 onComplete={handleOtpComplete}
-                isError={otpError}
+                isError={!!phoneVerification.error}
                 timeLeft={phoneVerification.timeLeft}
                 attemptsLeft={phoneVerification.attemptsLeft}
                 onResendClick={handleResendOtp}
+                phoneNumber={phoneVerification.phoneNumber}
+                verifyLoading={phoneVerification.verifyLoading}
+                resendLoading={phoneVerification.resendLoading}
               />
 
-              {otpError && phoneVerification.attemptsLeft > 0 && (
+              {step === "otp" && phoneVerification.error && (
                 <p className="text-warning text-sm text-center">
-                  کد وارد شده صحیح نیست. لطفا دوباره تلاش کنید.
+                  {phoneVerification.error}
                 </p>
               )}
             </motion.div>

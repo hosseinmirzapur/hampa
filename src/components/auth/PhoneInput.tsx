@@ -1,47 +1,28 @@
-import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { gql, useMutation } from '@apollo/client';
+import React, { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // Define schema for phone number
 const phoneSchema = z.object({
   phoneNumber: z
     .string()
-    .min(11, 'شماره تلفن باید ۱۱ رقم باشد')
-    .max(11, 'شماره تلفن باید ۱۱ رقم باشد')
-    .regex(/^09\d{9}$/, 'فرمت شماره تلفن صحیح نیست (مثال: 09123456789)'),
+    .min(11, "شماره تلفن باید ۱۱ رقم باشد")
+    .max(11, "شماره تلفن باید ۱۱ رقم باشد")
+    .regex(/^09\d{9}$/, "فرمت شماره تلفن صحیح نیست (مثال: 09123456789)"),
 });
 
 type PhoneFormValues = z.infer<typeof phoneSchema>;
 
 interface PhoneInputProps {
   onSubmit: (phoneNumber: string) => void;
+  loading: boolean;
 }
-
-const REQUEST_OTP_MUTATION = gql`
-  mutation RequestOtp($input: RequestOtpInput!) {
-    requestOtp(input: $input) {
-      success
-      message
-    }
-  }
-`;
 
 export const PhoneInput: React.FC<PhoneInputProps> = ({
   onSubmit,
+  loading,
 }) => {
-  const [requestOtp, { loading, error, data }] = useMutation(
-    REQUEST_OTP_MUTATION,
-    {
-      onCompleted: (data) => {
-        console.log('OTP Request Successful:', data);
-      },
-      onError: (error) => {
-        console.error('OTP Request Error:', error);
-      },
-    },
-  );
   const {
     register,
     handleSubmit,
@@ -51,13 +32,16 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
   });
 
   const onFormSubmit = (data: PhoneFormValues) => {
-    requestOtp({ variables: { input: { phoneNumber: data.phoneNumber } } });
+    onSubmit(data.phoneNumber);
   };
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
       <div>
-        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="phoneNumber"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           شماره موبایل
         </label>
         <div className="relative">
@@ -66,16 +50,18 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
             type="tel"
             inputMode="numeric"
             placeholder="09123456789"
-            {...register('phoneNumber')}
-            className={`input text-left ${errors.phoneNumber ? 'border-error focus:ring-error' : ''}`}
+            {...register("phoneNumber")}
+            className={`input text-left ${errors.phoneNumber ? "border-error focus:ring-error" : ""}`}
             dir="ltr"
           />
         </div>
         {errors.phoneNumber && (
-          <p className="mt-1 text-error text-sm">{errors.phoneNumber.message}</p>
+          <p className="mt-1 text-error text-sm">
+            {errors.phoneNumber.message}
+          </p>
         )}
       </div>
-      
+
       <button
         type="submit"
         className="btn btn-primary w-full"
@@ -87,7 +73,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
             <span>در حال ارسال...</span>
           </div>
         ) : (
-          'دریافت کد تایید'
+          "دریافت کد تایید"
         )}
       </button>
     </form>

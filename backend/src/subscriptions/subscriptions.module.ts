@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SubscriptionsResolver } from './subscriptions.resolver';
 import { SubscriptionsService } from './subscriptions.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  providers: [SubscriptionsResolver, SubscriptionsService]
+  imports: [PrismaModule],
+  providers: [SubscriptionsResolver, SubscriptionsService],
 })
 export class SubscriptionsModule {}
