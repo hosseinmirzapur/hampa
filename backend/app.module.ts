@@ -10,6 +10,7 @@ import { RunnerCardsModule } from './src/runner-cards/runner-cards.module'; // C
 import { JointRunsModule } from './src/joint-runs/joint-runs.module'; // Corrected import path
 import * as redisStore from 'cache-manager-redis-store';
 import { ConfigModule, ConfigService } from '@nestjs/config'; // Import ConfigModule and ConfigService
+import { GraphQLModule } from '@nestjs/graphql';
 import { NotificationsModule } from './src/src/notifications/notifications.module';
 import { NotificationsService } from './src/src/src/notifications/notifications/notifications.service';
 import { NotificationsController } from './src/src/src/notifications/notifications/notifications.controller';
@@ -17,9 +18,16 @@ import { SubscriptionsModule } from './src/src/subscriptions/subscriptions.modul
 import { SubscriptionsService } from './src/src/src/subscriptions/subscriptions/subscriptions.service';
 import { SubscriptionsController } from './src/src/src/subscriptions/subscriptions/subscriptions.controller';
 
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // Load environment variables
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: 'schema.gql', // Path to generate the schema file
+      sortSchema: true,
+    }),
     CacheModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

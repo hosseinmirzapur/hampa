@@ -1,13 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CardsCarousel } from "../components/cards/CardsCarousel";
-import { useRunnerCards } from "../hooks/useRunnerCards";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { gql, useQuery } from '@apollo/client'; // Import gql and useQuery
+import { RunnerCard } from "../types"; // Assuming RunnerCard type is defined here
+
+const GET_RUNNER_CARDS = gql`
+  query RunnerCards {
+    runnerCards {
+      id
+      name
+      location
+      days
+      time
+      phoneNumber
+      isPhoneNumberPublic
+    }
+  }
+`;
 
 const Explore: React.FC = () => {
-  const { getAllCards, expressInterest, hasExpressedInterest, isLoading } =
-    useRunnerCards();
   const navigate = useNavigate();
   const [isInterestLoading, setIsInterestLoading] = useState(false);
 
@@ -31,6 +44,8 @@ const Explore: React.FC = () => {
   const handleBannerClick = () => {
     navigate("/app/create-card");
   };
+
+  const { loading, error, data } = useQuery<{ runnerCards: RunnerCard[] }>(GET_RUNNER_CARDS);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -73,9 +88,9 @@ const Explore: React.FC = () => {
       {/* Runner Cards Carousel */}
       <div className="mb-6">
         <h2 className="text-xl font-bold mb-4">دونده‌های فعال</h2>
+        {loading && <p>در حال بارگذاری...</p>}
+        {error && <p>خطا در دریافت اطلاعات کارت‌ها: {error.message}</p>}
         <CardsCarousel
-          cards={getAllCards()}
-          onInterestClick={handleInterestClick}
           hasExpressedInterest={hasExpressedInterest}
           isLoading={isLoading}
         />

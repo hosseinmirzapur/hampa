@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react"; // Import useEffect
 import { useNavigate } from "react-router-dom";
 import { CardForm } from "../components/forms/CardForm";
-import { useRunnerCards } from "../hooks/useRunnerCards";
 import { DayOfWeek, TimeOfDay } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { OtpInput } from "../components/auth/OtpInput"; // Import OtpInput component
 import { toast } from "react-toastify";
+import { gql, useMutation } from '@apollo/client';
+
+const CREATE_RUNNER_CARD_MUTATION = gql`
+  mutation CreateRunnerCard($input: CreateRunnerCardInput!) {
+    createRunnerCard(input: $input) {
+      id
+      name
+      location
+      days
+      time
+      phoneNumber
+      isPhoneNumberPublic
+    }
+  }
+`;
 
 const CreateCard: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -16,7 +30,7 @@ const CreateCard: React.FC = () => {
     verifyOtp,
     phoneVerification,
     isLoading: isAuthLoading,
-  } = useAuth(); // Get isAuthLoading
+  } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<"form" | "otp-verification">("form");
@@ -28,23 +42,31 @@ const CreateCard: React.FC = () => {
     phoneNumber: string;
     isPhoneNumberPublic: boolean;
   } | null>(null);
+  const [createCardMutation, { loading: isCreatingCard, error: createCardError, data: createCardData }] = useMutation(CREATE_RUNNER_CARD_MUTATION);
 
   // Effect to handle navigation after successful OTP verification
   useEffect(() => {
     if (user && formData && step === "otp-verification") {
       // User is now authenticated after OTP verification, proceed with card creation
-      const card = createCard(
-        formData.name,
-        formData.location,
-        formData.days,
-        formData.time,
-        formData.phoneNumber,
-        formData.isPhoneNumberPublic
-      );
+      createCardMutation({
+        variables: {
+          input: {
+            name: formData.name,
+            location: formData.location,
+            days: formData.days,
+            time: formData.time,
+            phoneNumber: formData.phoneNumber,
+            isPhoneNumberPublic: formData.isPhoneNumberPublic,
+          },
+        },
+      });
+    }
+  }, [user, formData, step, createCardMutation]);
 
-      if (card) {
-        navigate(`/app/cards/${card.id}`); // Navigate to card details page
-      } else {
+  useEffect(() => {
+    if (createCardData?.createRunnerCard) {
+      navigate(`/app/cards/${createCardData.createRunnerCard.id}`);
+    } else if (createCardError) {
         toast.error("خطا در ایجاد کارت");
         setIsCreating(false);
       }
@@ -60,8 +82,6 @@ const CreateCard: React.FC = () => {
     isPhoneNumberPublic: boolean
   ) => {
     setIsCreating(true);
-
-    // Store form data for later use after OTP verification if needed
     setFormData({
       name,
       location,
@@ -75,15 +95,18 @@ const CreateCard: React.FC = () => {
       // Check if the user is logged in and using the same phone number
       if (user && user.phoneNumber === phoneNumber) {
         // User is logged in and using their verified phone number
-        const card = createCard(
-          name,
-          location,
-          days,
-          time,
-          phoneNumber,
-          isPhoneNumberPublic
-        );
-
+        createCardMutation({
+          variables: {
+            input: {
+              name,
+              location,
+              days,
+              time,
+              phoneNumber,
+              isPhoneNumberPublic,
+            },
+          },
+        });
         if (card) {
           navigate(`/app/cards/${card.id}`); // Navigate to card details page
         } else {
@@ -136,7 +159,7 @@ const CreateCard: React.FC = () => {
         <h1 className="text-2xl font-bold mb-6">ایجاد کارت جدید</h1>
 
         {step === "form" ? (
-          <CardForm onSubmit={handleFormSubmit} isLoading={isCreating} />
+          <CardForm onSubmit={handleFormSubmit} isLoading={isCreating || isCreatingCard} />
         ) : (
           <div className="space-y-6">
             <p className="text-center">

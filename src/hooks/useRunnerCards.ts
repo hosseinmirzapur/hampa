@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
 import { RunnerCard, DayOfWeek, TimeOfDay } from '../types';
-import { useLocalStorage } from './useLocalStorage';
 import { useAuth } from '../contexts/AuthContext';
-import { v4 as uuidv4 } from 'uuid';
 import { useNotification } from '../contexts/NotificationContext';
+import { useQuery, useMutation } from '@apollo/client';
+import {
+  GET_USER_CARDS,
+  GET_ALL_CARDS,
+  GET_CARD_BY_ID,
+  CREATE_RUNNER_CARD_MUTATION,
+  DELETE_RUNNER_CARD_MUTATION,
+  UPDATE_CARD_VISIBILITY_MUTATION,
+  EXPRESS_INTEREST_MUTATION,
+} from '../graphql/runnerCard.graphql';
 
 export const useRunnerCards = () => {
   const { user } = useAuth();
   const { notifyInterest } = useNotification();
-  const [cards, setCards] = useLocalStorage<RunnerCard[]>('hampa-cards', []);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate loading delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
+  // GraphQL Queries
+  const { data: userCardsData, loading: userCardsLoading, error: userCardsError, refetch: refetchUserCards } = useQuery(GET_USER_CARDS, {
+    skip: !user, // Skip query if user is not logged in
     }, 500);
     
     return () => clearTimeout(timer);
@@ -22,14 +27,11 @@ export const useRunnerCards = () => {
 
   // Get all cards
   const getAllCards = () => {
-    return [...cards].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return allCardsData?.runnerCards || [];
   };
 
   // Get cards created by the current user
-  const getUserCards = () => {
-    if (!user) return [];
+ const getUserCards = () => {
     
     return cards
       .filter(card => card.creatorId === user.id)
@@ -39,14 +41,11 @@ export const useRunnerCards = () => {
   };
 
   // Get cards that the current user is interested in
-  const getInterestedCards = () => {
-    if (!user) return [];
+  const getInterestedCards = () => { // This will need to be updated to fetch from backend if interest is stored there
+    return []; // Placeholder
     
     return cards
       .filter(card => card.interestedUsers.includes(user.id))
-      .sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
   };
 
   // Get a single card by ID
@@ -54,88 +53,49 @@ export const useRunnerCards = () => {
     return cards.find(card => card.id === id) || null;
   };
 
+  // GraphQL Mutations
+  const [createCardMutation, { loading: createLoading, error: createError }] = useMutation(CREATE_RUNNER_CARD_MUTATION, {
+    onCompleted: () => refetchUserCards(), // Refetch user cards after creating one
+  });
+  const [deleteCardMutation, { loading: deleteLoading, error: deleteError }] = useMutation(DELETE_RUNNER_CARD_MUTATION, {
+    onCompleted: () => refetchUserCards(), // Refetch user cards after deleting one
+  });
+  const [updateCardVisibilityMutation, { loading: updateVisibilityLoading, error: updateVisibilityError }] = useMutation(UPDATE_CARD_VISIBILITY_MUTATION, {
+    onCompleted: () => refetchUserCards(), // Refetch user cards after updating visibility
+  });
+  const [expressInterestMutation, { loading: expressInterestLoading, error: expressInterestError }] = useMutation(EXPRESS_INTEREST_MUTATION);
+
   // Create a new card
-  const createCard = (
-    name: string,
-    location: string,
-    days: DayOfWeek[],
-    time: TimeOfDay,
-    phoneNumber: string,
-    isPhoneNumberPublic: boolean
-  ) => {
-    if (!user) return null;
-    
-    const newCard: RunnerCard = {
-      id: uuidv4(),
-      creatorId: user.id,
-      creatorName: name || user.name,
-      creatorProfilePicture: user.profilePicture,
-      location,
-      days,
-      time,
-      phoneNumber,
-      isPhoneNumberPublic,
-      createdAt: new Date().toISOString(),
-      interestedUsers: [],
-    };
-    
-    setCards(prevCards => [newCard, ...prevCards]);
-    return newCard;
+  const createCard = async (input: any) => { // Use any for now, will refine with generated types
+    try {
+      const { data } = await createCardMutation({ variables: { input } });
+      return data?.createRunnerCard;
+    } catch (error) {
+      console.error("Error creating card:", error);
+      throw error;
+    }
   };
 
   // Delete a card
-  const deleteCard = (id: string) => {
-    if (!user) return false;
-    
-    const card = cards.find(c => c.id === id);
-    
-    if (!card || card.creatorId !== user.id) {
-      return false;
+  const deleteCard = async (id: string) => {
+    try {
+      const { data } = await deleteCardMutation({ variables: { id } });
+      return data?.deleteCard;
+    } catch (error) {
+      console.error("Error deleting card:", error);
+      throw error;
     }
-    
-    setCards(prevCards => prevCards.filter(card => card.id !== id));
-    return true;
   };
 
   // Update card visibility
-  const updateCardVisibility = (id: string, isPhoneNumberPublic: boolean) => {
-    if (!user) return false;
-    
-    const card = cards.find(c => c.id === id);
-    
-    if (!card || card.creatorId !== user.id) {
-      return false;
+  const updateCardVisibility = async (id: string, isPhoneNumberPublic: boolean) => {
+    try {
+      const { data } = await updateCardVisibilityMutation({ variables: { input: { id, isPhoneNumberPublic } } });
+      return data?.updateCardVisibility;
+    } catch (error) {
+      console.error("Error updating card visibility:", error);
+      throw error;
     }
-    
-    setCards(prevCards => 
-      prevCards.map(card => 
-        card.id === id 
-          ? { ...card, isPhoneNumberPublic } 
-          : card
-      )
-    );
-    
-    return true;
-  };
-
-  // Express interest in a card
-  const expressInterest = (cardId: string) => {
-    if (!user) return false;
-    
-    const card = cards.find(c => c.id === cardId);
-    
-    if (!card || card.creatorId === user.id || card.interestedUsers.includes(user.id)) {
-      return false;
-    }
-    
-    setCards(prevCards => 
-      prevCards.map(card => 
-        card.id === cardId 
-          ? { ...card, interestedUsers: [...card.interestedUsers, user.id] } 
-          : card
-      )
-    );
-    
     // Send notification to card creator
     notifyInterest({
       interestedUserId: user.id,
@@ -146,21 +106,31 @@ export const useRunnerCards = () => {
       time: card.time,
     });
     
-    return true;
+ return true;
+  };
+
+  // Express interest in a card
+  const expressInterest = async (cardId: string) => {
+    if (!user) return false; // Should be handled by authentication guard on backend
+    try {
+      const { data } = await expressInterestMutation({ variables: { input: { cardId } } });
+      // Handle notification sending based on backend response or separate mechanism
+      return data?.expressInterest;
+    } catch (error) {
+      console.error("Error expressing interest:", error);
+      throw error;
+    }
   };
 
   // Check if the current user has expressed interest in a card
-  const hasExpressedInterest = (cardId: string) => {
+  const hasExpressedInterest = (cardId: string): boolean => { // This needs to be updated to fetch from backend
     if (!user) return false;
-    
-    const card = cards.find(c => c.id === cardId);
-    return card ? card.interestedUsers.includes(user.id) : false;
+    return false; // Placeholder
   };
 
   // Get interested users for a specific card
-  const getInterestedUsersForCard = (cardId: string) => {
-    const card = cards.find(c => c.id === cardId);
-    return card ? card.interestedUsers : [];
+  const getInterestedUsersForCard = (cardId: string): string[] => { // This needs to be updated to fetch from backend
+    return []; // Placeholder
   };
 
   return {
@@ -170,7 +140,9 @@ export const useRunnerCards = () => {
     getUserCards,
     getInterestedCards,
     getCardById,
-    createCard,
+    createCard: createCard as any, // Type assertion for now
+    isLoading: userCardsLoading || allCardsLoading, // Combine loading states
+    error: userCardsError || allCardsError, // Combine error states
     deleteCard,
     updateCardVisibility,
     expressInterest,

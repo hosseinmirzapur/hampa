@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { gql, useMutation } from '@apollo/client';
 
 // Define schema for phone number
 const phoneSchema = z.object({
@@ -16,13 +17,31 @@ type PhoneFormValues = z.infer<typeof phoneSchema>;
 
 interface PhoneInputProps {
   onSubmit: (phoneNumber: string) => void;
-  isLoading?: boolean;
 }
+
+const REQUEST_OTP_MUTATION = gql`
+  mutation RequestOtp($input: RequestOtpInput!) {
+    requestOtp(input: $input) {
+      success
+      message
+    }
+  }
+`;
 
 export const PhoneInput: React.FC<PhoneInputProps> = ({
   onSubmit,
-  isLoading = false,
 }) => {
+  const [requestOtp, { loading, error, data }] = useMutation(
+    REQUEST_OTP_MUTATION,
+    {
+      onCompleted: (data) => {
+        console.log('OTP Request Successful:', data);
+      },
+      onError: (error) => {
+        console.error('OTP Request Error:', error);
+      },
+    },
+  );
   const {
     register,
     handleSubmit,
@@ -32,7 +51,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
   });
 
   const onFormSubmit = (data: PhoneFormValues) => {
-    onSubmit(data.phoneNumber);
+    requestOtp({ variables: { input: { phoneNumber: data.phoneNumber } } });
   };
 
   return (
@@ -60,9 +79,9 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
       <button
         type="submit"
         className="btn btn-primary w-full"
-        disabled={isLoading}
+        disabled={loading}
       >
-        {isLoading ? (
+        {loading ? (
           <div className="flex items-center justify-center">
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             <span>در حال ارسال...</span>

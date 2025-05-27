@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtStrategy } from './jwt.strategy'; // Import JwtStrategy
+import { AuthResolver } from './auth.resolver';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { JwtStrategy } from './jwt.strategy'; // Import JwtStrategy
       signOptions: { expiresIn: '60m' }, // TODO: Configure expiration time
     }),
   ],
-  providers: [AuthService, PrismaService, JwtStrategy], // Provide JwtStrategy
+  providers: [AuthService, PrismaService, JwtStrategy, AuthResolver], // Provide JwtStrategy and AuthResolver
   controllers: [AuthController],
   exports: [AuthService, JwtModule],
 })

@@ -73,4 +73,34 @@ export class RunnerCardsService {
       where: { userId },
     });
   }
+
+  async expressInterest(cardId: string, userId: string): Promise<RunnerCard> {
+    // Check if runner card exists
+    const runnerCard = await this.findOne(cardId);
+
+    // Check if the user has already expressed interest
+    // Assuming a many-to-many relationship 'interestedUsers' in Prisma schema
+    const hasExpressed = await this.prisma.runnerCard.findFirst({
+      where: {
+        id: cardId,
+        interestedUsers: {
+          some: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    if (hasExpressed) {
+      // User has already expressed interest, maybe throw an error or just return the card
+      // For now, let's just return the existing card
+      return runnerCard;
+    }
+
+    // Add the user to the interestedUsers list
+    return this.prisma.runnerCard.update({
+      where: { id: cardId },
+      data: { interestedUsers: { connect: { id: userId } } },
+    });
+  }
 }
