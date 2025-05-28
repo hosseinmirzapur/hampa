@@ -5,66 +5,66 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#3B82F6", // Vibrant Blue: Evokes trust, sky, openness, and a modern tech feel.
-          light: "#60A5FA", // Lighter blue for hover states, backgrounds.
-          dark: "#2563EB", // Deeper blue for primary actions, ensuring good contrast with white text.
+          DEFAULT: "#3B82F6", // Vibrant Blue
+          light: "#60A5FA",
+          dark: "#2563EB",
         },
         secondary: {
-          DEFAULT: "#F97316", // Energetic Orange: Radiates energy, motivation, and enthusiasm.
-          light: "#FB923C", // Softer orange for secondary elements or highlights.
-          dark: "#EA580C", // Stronger orange for impactful secondary actions.
+          DEFAULT: "#F97316", // Energetic Orange
+          light: "#FB923C",
+          dark: "#EA580C",
         },
         accent: {
-          DEFAULT: "#FACC15", // Sunny Yellow: Optimistic, grabs attention for important highlights or CTAs.
-          light: "#FEF08A", // Paler yellow for subtle accents.
-          dark: "#EAB308", // Richer yellow for more emphasis.
+          DEFAULT: "#FACC15", // Sunny Yellow
+          light: "#FEF08A",
+          dark: "#EAB308",
         },
         neutral: {
-          extralight: "#F9FAFB", // Very light gray for subtle backgrounds.
-          light: "#F3F4F6", // Light gray for cards, page backgrounds.
-          DEFAULT: "#6B7280", // Medium gray for secondary text, icons.
-          dark: "#374151", // Dark gray for primary text, darker UI elements.
-          extradark: "#111827", // Very dark gray/off-black for deep contrast.
+          extralight: "#F9FAFB",
+          light: "#F3F4F6",
+          DEFAULT: "#6B7280",
+          dark: "#374151",
+          extradark: "#111827",
         },
         success: {
-          DEFAULT: "#10B981", // Emerald Green: Clear indication of success, fresh and vibrant.
+          DEFAULT: "#10B981", // Emerald Green
           light: "#6EE7B7",
           dark: "#059669",
         },
         warning: {
-          DEFAULT: "#F59E0B", // Amber: Standard warning, easily recognizable.
+          DEFAULT: "#F59E0B", // Amber
           light: "#FCD34D",
           dark: "#B45309",
         },
         error: {
-          DEFAULT: "#EF4444", // Red: Clear and universal for errors.
+          DEFAULT: "#EF4444", // Red
           light: "#FCA5A5",
           dark: "#DC2626",
         },
       },
       fontFamily: {
-        vazir: ["Vazirmatn", "sans-serif"], // Keeping your specified font.
+        vazir: ["Vazirmatn", "sans-serif"], // Defines font-vazir utility
       },
       animation: {
         // Existing refined
-        "slide-right": "slideRight 15s linear infinite", // Good for continuous marquees
-        "fade-in": "fadeIn 0.3s ease-out", // Slightly smoother easing
-        "fade-out": "fadeOut 0.3s ease-in", // Standard fade out
-        "slide-up": "slideUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)", // More dynamic slide
-        "slide-down": "slideDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)", // More dynamic slide
+        "slide-right": "slideRight 15s linear infinite",
+        "fade-in": "fadeIn 0.3s ease-out",
+        "fade-out": "fadeOut 0.3s ease-in",
+        "slide-up": "slideUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
+        "slide-down": "slideDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
         "pulse-subtle":
-          "pulseSubtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite", // Refined pulse
+          "pulseSubtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite",
 
         // New additions
-        "scale-in": "scaleIn 0.25s ease-out", // For modal pop-ups or card appearances
-        shimmer: "shimmer 1.5s linear infinite", // For loading skeletons
-        "bounce-subtle": "bounceSubtle 1s infinite", // For notification icons or attention seekers
+        "scale-in": "scaleIn 0.25s ease-out",
+        shimmer: "shimmer 1.5s linear infinite",
+        "bounce-subtle": "bounceSubtle 1s infinite",
       },
       keyframes: {
         // Existing refined
         slideRight: {
           "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-100%)" }, // Assuming it's for a duplicated content scroll
+          "100%": { transform: "translateX(-100%)" },
         },
         fadeIn: {
           "0%": { opacity: "0" },
@@ -83,7 +83,6 @@ export default {
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
         pulseSubtle: {
-          // Renamed from pulse-slow for clarity and refined effect
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: ".6" },
         },
@@ -94,7 +93,6 @@ export default {
           "100%": { opacity: "1", transform: "scale(1)" },
         },
         shimmer: {
-          // Apply a gradient background to the element for this to work
           "0%": { backgroundPosition: "-1000px 0" },
           "100%": { backgroundPosition: "1000px 0" },
         },
@@ -110,7 +108,6 @@ export default {
         },
       },
       spacing: {
-        // Preserving your existing custom spacing
         18: "4.5rem",
         22: "5.5rem",
         68: "17rem",
