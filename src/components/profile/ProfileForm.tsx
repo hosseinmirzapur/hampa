@@ -66,8 +66,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   // Format membership date
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) {
+      return "-"; // Return a placeholder if dateString is null, undefined, or empty
+    }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "-"; // Return a placeholder if the date is invalid
+    }
     return new Intl.DateTimeFormat("fa-IR").format(date);
   };
 

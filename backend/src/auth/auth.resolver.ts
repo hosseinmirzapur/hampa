@@ -13,7 +13,7 @@ import { CurrentUser } from './decorators/current-user.decorator';
 export class AuthResolver {
   constructor(private authService: AuthService) {}
 
-  @Mutation(() => Boolean)
+  @Mutation(() => String) // Change return type to String
   async requestOtp(@Args('requestOtpInput') requestOtpInput: RequestOtpInput) {
     return this.authService.requestOtp(requestOtpInput.phone);
   }

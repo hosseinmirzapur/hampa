@@ -7,13 +7,8 @@ import React, {
 } from "react";
 import { User } from "../types";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { generateDefaultUser } from "../utils/mockData";
-import {
-  gql,
-  useMutation,
-  ApolloClient,
-  useApolloClient,
-} from "@apollo/client";
+import { gql, useMutation, useApolloClient } from "@apollo/client";
+import { toast } from "react-toastify"; // Add toast import
 
 const REQUEST_OTP_MUTATION = gql`
   mutation RequestOtp($requestOtpInput: RequestOtpInput!) {
@@ -174,6 +169,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setPhoneVerification((prev) => ({ ...prev, resendLoading: false }));
 
       if (data?.requestOtp) {
+        if (process.env.NODE_ENV === "development") {
+          toast.info(`OTP for ${phoneNumber}: ${data.requestOtp}`);
+        }
         console.log("requestOtp mutation successful, returning true");
         return true;
       } else {
@@ -208,63 +206,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       setPhoneVerification((prev) => ({ ...prev, verifyLoading: true }));
 
-      // Keep the mock "123456" check for now as requested by the user
-      if (otp === "123456") {
-        const { data, errors } = await verifyOtpAndRegisterUserMutation({
+      // The "123456" mock OTP check has been removed from the backend.
+      // Now, always proceed with actual OTP verification.
+      const { data, errors } = await verifyOtpAndRegisterUserMutation({
+        variables: {
+          verifyOtpAndRegisterUserInput: {
+            phone: phoneVerification.phoneNumber,
+            otp,
+          },
+        },
+      });
+
+      setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
+
+      if (data?.verifyOtpAndRegisterUser) {
+        // After successful OTP verification/registration, call the login mutation to get the token
+        const { data: loginData, errors: loginErrors } = await loginMutation({
           variables: {
-            verifyOtpAndRegisterUserInput: {
+            loginInput: {
               phone: phoneVerification.phoneNumber,
-              otp,
+              password: "mock_password", // Use a mock password as the backend expects one
             },
           },
         });
 
-        setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
-
-        if (data?.verifyOtpAndRegisterUser) {
-          // After successful OTP verification/registration, call the login mutation to get the token
-          const { data: loginData, errors: loginErrors } = await loginMutation({
-            variables: {
-              loginInput: {
-                phone: phoneVerification.phoneNumber,
-                password: "mock_password", // Use a mock password as the backend expects one
-              },
-            },
-          });
-
-          if (loginData?.login) {
-            const { accessToken, user: userProfile } = loginData.login;
-            setUser(userProfile);
-            setAuthToken(accessToken);
-            resetVerification();
-            return true;
-          } else {
-            const errorMessage =
-              loginErrors?.[0]?.message || "خطا در ورود پس از تایید OTP";
-            setPhoneVerification((prev) => ({
-              ...prev,
-              error: errorMessage,
-            }));
-            return false;
-          }
+        if (loginData?.login) {
+          const { accessToken, user: userProfile } = loginData.login;
+          setUser(userProfile);
+          setAuthToken(accessToken);
+          resetVerification();
+          return true;
         } else {
-          const errorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
+          const errorMessage =
+            loginErrors?.[0]?.message || "خطا در ورود پس از تایید OTP";
           setPhoneVerification((prev) => ({
             ...prev,
-            attemptsLeft: prev.attemptsLeft - 1,
-            timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft,
             error: errorMessage,
           }));
           return false;
         }
       } else {
-        setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
-        // Decrement attempts and set error for incorrect mock OTP
+        const errorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
         setPhoneVerification((prev) => ({
           ...prev,
           attemptsLeft: prev.attemptsLeft - 1,
           timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft,
-          error: "کد تایید اشتباه است.",
+          error: errorMessage,
         }));
         return false;
       }

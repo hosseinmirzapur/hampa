@@ -79,7 +79,7 @@ type Mutation {
   leaveRun(jointRunId: String!): JointRunParticipantType!
   login(loginInput: LoginInput!): AuthPayload!
   markNotificationAsRead(notificationId: String!): NotificationType!
-  requestOtp(requestOtpInput: RequestOtpInput!): Boolean!
+  requestOtp(requestOtpInput: RequestOtpInput!): String!
   testProtectedRoute: String!
   updateJointRun(id: String!, updateJointRunInput: UpdateJointRunInput!): JointRunType!
   updateRunnerCard(id: String!, updateRunnerCardInput: UpdateRunnerCardInput!): RunnerCardType!

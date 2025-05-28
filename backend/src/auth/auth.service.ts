@@ -15,18 +15,26 @@ import { UserProfileType } from '../users/dto/user-profile.dto';
 
 @Injectable()
 export class AuthService {
+  private otpStore: Map<string, { code: string; expiry: number }> = new Map(); // Temporary in-memory OTP store
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async requestOtp(phone: string): Promise<boolean> {
+  async requestOtp(phone: string): Promise<string> {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const otpKey = `otp:${phone}`;
 
     // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
     await this.cacheManager.set(otpKey, otpCode, 300);
+
+    // Store OTP in temporary in-memory store for development/debugging
+    this.otpStore.set(phone, {
+      code: otpCode,
+      expiry: Date.now() + 300 * 1000,
+    });
 
     // Find or create user by phone number (still in DB for user data persistence)
     let user = await this.prisma.user.findUnique({ where: { phone } });
@@ -34,8 +42,8 @@ export class AuthService {
       user = await this.prisma.user.create({ data: { phone } });
     }
 
-    console.log(`OTP for ${phone}: ${otpCode} (stored in Redis)`); // Log OTP for testing purposes
-    return true;
+    console.log(`OTP for ${phone}: ${otpCode} (stored in Redis and in-memory)`); // Log OTP for testing purposes
+    return otpCode; // Return the OTP code
   }
 
   async verifyOtpAndRegisterUser(
@@ -44,20 +52,27 @@ export class AuthService {
     const { phone, otp, name, password } = data;
     const otpKey = `otp:${phone}`;
 
-    // Bypass OTP verification if the provided OTP is the default "123456"
-    if (otp !== '123456') {
-      // Only check cache if not the default OTP
-      const storedOtp = await this.cacheManager.get<string>(otpKey);
+    let storedOtp: string | undefined | null;
 
-      if (!storedOtp || storedOtp !== otp) {
-        throw new BadRequestException('Invalid or expired OTP.');
-      }
-      // OTP is valid, remove it from cache to prevent reuse (only for non-default OTPs)
-      await this.cacheManager.del(otpKey);
+    // First, try to get OTP from in-memory store (for development/debugging)
+    const inMemoryOtp = this.otpStore.get(phone);
+    if (inMemoryOtp && inMemoryOtp.expiry > Date.now()) {
+      storedOtp = inMemoryOtp.code;
+      // If using in-memory, remove it after use to simulate single-use OTP
+      this.otpStore.delete(phone);
     } else {
-      // For default OTP, ensure it's removed from cache if it exists to prevent issues
-      await this.cacheManager.del(otpKey);
+      // If not in in-memory store or expired, try Redis
+      storedOtp = await this.cacheManager.get<string>(otpKey);
+      // If OTP is valid from Redis, remove it from cache to prevent reuse
+      if (storedOtp && storedOtp === otp) {
+        await this.cacheManager.del(otpKey);
+      }
     }
+
+    if (!storedOtp || storedOtp !== otp) {
+      throw new BadRequestException('Invalid or expired OTP.');
+    }
+    // OTP is valid, it has already been removed if from in-memory or Redis
 
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) {
