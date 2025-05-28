@@ -5,7 +5,6 @@ import { DayOfWeek, TimeOfDay } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { OtpInput } from "../components/auth/OtpInput"; // Import OtpInput component
 import { toast } from "react-toastify";
-import { CREATE_RUNNER_CARD_MUTATION } from "../graphql/runnerCard.graphql"; // Import from graphql file
 import { useRunnerCards } from "../hooks/useRunnerCards"; // Ensure this is imported
 
 const CreateCard: React.FC = () => {
@@ -17,11 +16,14 @@ const CreateCard: React.FC = () => {
     verifyOtp,
     phoneVerification,
     isLoading: isAuthLoading,
+    verifyLoading, // Destructure verifyLoading
+    resendLoading, // Destructure resendLoading
   } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<"form" | "otp-verification">("form");
   const [formData, setFormData] = useState<{
+    title: string;
     location: string;
     days: DayOfWeek[];
     time: TimeOfDay;
@@ -36,6 +38,7 @@ const CreateCard: React.FC = () => {
         setIsSubmittingForm(true); // Set loading for card creation
         try {
           const newCard = await createCard({
+            title: formData.title,
             location: formData.location,
             days: formData.days,
             time: formData.time,
@@ -60,6 +63,7 @@ const CreateCard: React.FC = () => {
   }, [user, formData, step, createCard, navigate]);
 
   const handleFormSubmit = async (
+    title: string, // Add title as the first parameter
     location: string,
     days: DayOfWeek[],
     time: TimeOfDay,
@@ -68,6 +72,7 @@ const CreateCard: React.FC = () => {
   ) => {
     setIsSubmittingForm(true); // Set loading for form submission
     setFormData({
+      title,
       location,
       days,
       time,
@@ -76,10 +81,23 @@ const CreateCard: React.FC = () => {
     });
 
     try {
-      // Check if the user is logged in and using the same phone number
-      if (user && user.phoneNumber === phoneNumber) {
+      // Determine if OTP verification is needed
+      const needsOtpVerification = !user || user.phoneNumber !== phoneNumber;
+
+      if (needsOtpVerification) {
+        // User is either not logged in or using a different phone number
+        // Need to verify the phone number with OTP
+        const loginSuccess = await login(phoneNumber);
+        if (loginSuccess) {
+          setStep("otp-verification");
+        } else {
+          toast.error("خطا در ارسال کد تایید");
+        }
+      } else {
         // User is logged in and using their verified phone number
+        // Proceed directly with card creation
         const newCard = await createCard({
+          title,
           location,
           days,
           time,
@@ -91,15 +109,6 @@ const CreateCard: React.FC = () => {
           navigate(`/app/cards/${newCard.id}`);
         } else {
           toast.error("خطا در ایجاد کارت");
-        }
-      } else {
-        // User is either not logged in or using a different phone number
-        // Need to verify the phone number with OTP
-        const loginSuccess = await login(phoneNumber);
-        if (loginSuccess) {
-          setStep("otp-verification");
-        } else {
-          toast.error("خطا در ارسال کد تایید");
         }
       }
     } catch (error: any) {
@@ -161,6 +170,8 @@ const CreateCard: React.FC = () => {
                 attemptsLeft={phoneVerification?.attemptsLeft || 0} // Pass attempts left
                 onResendClick={handleResendOtp} // Pass resend handler
                 phoneNumber={phoneVerification.phoneNumber} // Pass phoneNumber
+                verifyLoading={verifyLoading} // Pass verifyLoading
+                resendLoading={resendLoading} // Pass resendLoading
               />
             </div>
             {phoneVerification?.error && ( // Display OTP error message

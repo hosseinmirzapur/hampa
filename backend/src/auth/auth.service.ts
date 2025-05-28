@@ -95,16 +95,42 @@ export class AuthService {
   async login(phone: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { phone } });
 
-    if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid credentials.');
+    if (!user) {
+      // If user is not found, it means they haven't even gone through requestOtp yet.
+      // This case should ideally be handled by the requestOtp/verifyOtp flow first.
+      // For now, we'll throw an exception, but a more robust solution might involve
+      // initiating the OTP flow from here if this 'login' is meant to be a universal entry.
+      throw new UnauthorizedException('User not found.');
     }
 
+    // If user exists but has no password (e.g., just registered via OTP and hasn't set one)
+    if (!user.password) {
+      // Generate token for this user directly, as they've been OTP-verified
+      const payload = { phone: user.phone, sub: user.id };
+      const userProfile: UserProfileType = {
+        id: user.id,
+        phone: user.phone,
+        name: user.name ?? undefined,
+        email: user.email ?? undefined,
+        avatarUrl: user.avatarUrl ?? undefined,
+        bio: user.bio ?? undefined,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+      return {
+        accessToken: this.jwtService.sign(payload),
+        user: userProfile,
+      };
+    }
+
+    // If user has a password, proceed with password validation
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
+    // Generate token for password-authenticated user
     const payload = { phone: user.phone, sub: user.id };
     const userProfile: UserProfileType = {
       id: user.id,

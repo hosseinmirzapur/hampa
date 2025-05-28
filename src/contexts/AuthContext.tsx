@@ -38,6 +38,22 @@ const VERIFY_OTP_MUTATION = gql`
   }
 `;
 
+const LOGIN_MUTATION = gql`
+  mutation Login($loginInput: LoginInput!) {
+    login(loginInput: $loginInput) {
+      accessToken
+      user {
+        id
+        phone
+        name
+        email
+        avatarUrl
+        bio
+      }
+    }
+  }
+`;
+
 interface PhoneVerification {
   phoneNumber: string;
   timeLeft: number;
@@ -59,6 +75,7 @@ interface AuthContextType {
   resetVerification: () => void;
   verifyLoading: boolean;
   resendLoading: boolean;
+  authToken: string | null; // Add authToken to context type
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -76,6 +93,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const client = useApolloClient();
   const [user, setUser] = useLocalStorage<User | null>("hampa-user", null);
+  const [authToken, setAuthToken] = useLocalStorage<string | null>(
+    "hampa-auth-token",
+    null
+  ); // New: Store auth token
   const [isLoading, setIsLoading] = useState(true);
   const [phoneVerification, setPhoneVerification] = useState<PhoneVerification>(
     {
@@ -90,6 +111,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const [requestOtpMutation] = useMutation(REQUEST_OTP_MUTATION);
   const [verifyOtpAndRegisterUserMutation] = useMutation(VERIFY_OTP_MUTATION);
+  const [loginMutation] = useMutation(LOGIN_MUTATION); // New: login mutation
 
   // Handle countdown timer for OTP verification
   useEffect(() => {
@@ -200,10 +222,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setPhoneVerification((prev) => ({ ...prev, verifyLoading: false }));
 
         if (data?.verifyOtpAndRegisterUser) {
-          const userProfile = data.verifyOtpAndRegisterUser;
-          setUser(userProfile);
-          resetVerification();
-          return true;
+          // After successful OTP verification/registration, call the login mutation to get the token
+          const { data: loginData, errors: loginErrors } = await loginMutation({
+            variables: {
+              loginInput: {
+                phone: phoneVerification.phoneNumber,
+                password: "mock_password", // Use a mock password as the backend expects one
+              },
+            },
+          });
+
+          if (loginData?.login) {
+            const { accessToken, user: userProfile } = loginData.login;
+            setUser(userProfile);
+            setAuthToken(accessToken);
+            resetVerification();
+            return true;
+          } else {
+            const errorMessage =
+              loginErrors?.[0]?.message || "خطا در ورود پس از تایید OTP";
+            setPhoneVerification((prev) => ({
+              ...prev,
+              error: errorMessage,
+            }));
+            return false;
+          }
         } else {
           const errorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
           setPhoneVerification((prev) => ({
@@ -238,6 +281,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = () => {
     setUser(null);
+    setAuthToken(null); // New: Clear auth token on logout
     resetVerification();
     // In a real app, you would also invalidate tokens, etc.
   };
@@ -262,6 +306,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         resetVerification,
         verifyLoading: phoneVerification.verifyLoading,
         resendLoading: phoneVerification.resendLoading,
+        authToken, // New: Expose authToken
       }}
     >
       {children}

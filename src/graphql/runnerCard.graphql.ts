@@ -7,6 +7,11 @@ export const RUNNER_CARD_FRAGMENT = gql`
     title
     description
     imageUrl
+    location
+    days
+    time
+    phoneNumber
+    isPhoneNumberPublic
     userId
     createdAt
     updatedAt

@@ -17,6 +17,17 @@ export class RunnerCardType implements RunnerCard {
   imageUrl: string | null;
 
   @Field()
+  location: string;
+  @Field(() => [String])
+  days: string[];
+  @Field()
+  time: string;
+  @Field()
+  phoneNumber: string;
+  @Field()
+  isPhoneNumberPublic: boolean;
+
+  @Field()
   userId: string;
 
   @Field()
@@ -43,6 +54,24 @@ export class CreateRunnerCardInput {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  @Field()
+  @IsString()
+  location: string;
+
+  @Field(() => [String])
+  days: string[];
+
+  @Field()
+  @IsString()
+  time: string;
+
+  @Field()
+  @IsString()
+  phoneNumber: string;
+
+  @Field()
+  isPhoneNumberPublic: boolean;
 }
 
 @InputType()
@@ -63,4 +92,27 @@ export class UpdateRunnerCardInput {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  days?: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  time?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  isPhoneNumberPublic?: boolean;
 }

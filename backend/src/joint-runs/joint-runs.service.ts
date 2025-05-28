@@ -46,7 +46,12 @@ export class JointRunsService {
       id: runnerCard.id,
       title: runnerCard.title,
       description: runnerCard.description ?? null,
-      imageUrl: runnerCard.imageUrl ?? null, // Added imageUrl mapping
+      imageUrl: runnerCard.imageUrl ?? null,
+      location: runnerCard.location,
+      days: runnerCard.days,
+      time: runnerCard.time,
+      phoneNumber: runnerCard.phoneNumber,
+      isPhoneNumberPublic: runnerCard.isPhoneNumberPublic,
       userId: runnerCard.userId,
       createdAt: runnerCard.createdAt,
       updatedAt: runnerCard.updatedAt,

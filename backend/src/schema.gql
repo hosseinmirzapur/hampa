@@ -17,8 +17,13 @@ input CreateJointRunInput {
 }
 
 input CreateRunnerCardInput {
+  days: [String!]!
   description: String
   imageUrl: String
+  isPhoneNumberPublic: Boolean!
+  location: String!
+  phoneNumber: String!
+  time: String!
   title: String!
 }
 
@@ -112,9 +117,14 @@ input RequestOtpInput {
 
 type RunnerCardType {
   createdAt: DateTime!
+  days: [String!]!
   description: String
   id: String!
   imageUrl: String
+  isPhoneNumberPublic: Boolean!
+  location: String!
+  phoneNumber: String!
+  time: String!
   title: String!
   updatedAt: DateTime!
   userId: String!
@@ -130,8 +140,13 @@ input UpdateJointRunInput {
 }
 
 input UpdateRunnerCardInput {
+  days: [String!]
   description: String
   imageUrl: String
+  isPhoneNumberPublic: Boolean
+  location: String
+  phoneNumber: String
+  time: String
   title: String
 }
 

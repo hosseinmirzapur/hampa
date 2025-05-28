@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,24 +8,24 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  phone         String    @unique
-  password      String?   // Password might be optional if only OTP login is used long-term, but good for initial setup
-  name          String?
-  email         String?   @unique // Optional, for recovery or other notifications
-  avatarUrl     String?
-  bio           String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  password  String? // Password might be optional if only OTP login is used long-term, but good for initial setup
+  name      String?
+  email     String?  @unique // Optional, for recovery or other notifications
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  runnerCards   RunnerCard[]
-  jointRunsOwned JointRun[] @relation("OwnedRuns")
+  runnerCards            RunnerCard[]
+  jointRunsOwned         JointRun[]            @relation("OwnedRuns")
   jointRunParticipations JointRunParticipant[]
-  notifications Notification[]
-  subscriptions Subscription[]
-  sentMessages  Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
-  otp           Otp[]
+  notifications          Notification[]
+  subscriptions          Subscription[]
+  sentMessages           Message[]             @relation("SentMessages")
+  receivedMessages       Message[]             @relation("ReceivedMessages")
+  otp                    Otp[]
 }
 
 model Otp {
@@ -42,16 +41,19 @@ model Otp {
 }
 
 model RunnerCard {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  imageUrl    String?
-  // Add specific stats or attributes for a runner card
-  // e.g., distanceRecord Float?, paceAvg String?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  title               String
+  description         String?
+  imageUrl            String?
+  location            String
+  days                String[]
+  time                String
+  phoneNumber         String
+  isPhoneNumberPublic Boolean
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   jointRunParticipants JointRunParticipant[] // If a card can be directly linked to participation
 }
@@ -73,56 +75,56 @@ model JointRun {
 }
 
 model JointRunParticipant {
-  id           String     @id @default(cuid())
+  id           String      @id @default(cuid())
   userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   jointRunId   String
-  jointRun     JointRun   @relation(fields: [jointRunId], references: [id], onDelete: Cascade)
-  runnerCardId String?    // Optional: which card they are "using" for this run
+  jointRun     JointRun    @relation(fields: [jointRunId], references: [id], onDelete: Cascade)
+  runnerCardId String? // Optional: which card they are "using" for this run
   runnerCard   RunnerCard? @relation(fields: [runnerCardId], references: [id], onDelete: SetNull)
-  joinedAt     DateTime   @default(now())
-  status       String     // e.g., "INTERESTED", "GOING", "COMPLETED"
+  joinedAt     DateTime    @default(now())
+  status       String // e.g., "INTERESTED", "GOING", "COMPLETED"
 
   @@unique([userId, jointRunId]) // A user can only participate once in a run
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // e.g., "NEW_JOINER", "RUN_REMINDER", "FRIEND_REQUEST"
-  message   String
-  relatedEntityId String? // e.g., JointRunId, UserId
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String // e.g., "NEW_JOINER", "RUN_REMINDER", "FRIEND_REQUEST"
+  message           String
+  relatedEntityId   String? // e.g., JointRunId, UserId
   relatedEntityType String? // e.g., "JointRun", "User"
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isRead            Boolean  @default(false)
+  createdAt         DateTime @default(now())
 }
 
 model Subscription {
-  id        String   @id @default(cuid())
-  userId    String   @unique // A user typically has one active subscription
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId    String   // Identifier for the subscription plan (e.g., "basic", "premium")
-  status    String   // e.g., "ACTIVE", "CANCELED", "PAST_DUE"
-  startDate DateTime
-  endDate   DateTime? // Nullable for ongoing subscriptions
+  id                           String    @id @default(cuid())
+  userId                       String    @unique // A user typically has one active subscription
+  user                         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                       String // Identifier for the subscription plan (e.g., "basic", "premium")
+  status                       String // e.g., "ACTIVE", "CANCELED", "PAST_DUE"
+  startDate                    DateTime
+  endDate                      DateTime? // Nullable for ongoing subscriptions
   // Stripe Customer ID, Subscription ID, etc. can be stored here
-  paymentGatewaySubscriptionId String? @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  paymentGatewaySubscriptionId String?   @unique
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 }
 
 // Optional: For direct messaging or comments if needed later
 model Message {
-  id          String   @id @default(cuid())
-  content     String
-  senderId    String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId  String
-  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  content    String
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   // Could also be linked to a JointRun for a group chat
   // jointRunId String?
   // jointRun   JointRun? @relation(fields: [jointRunId], references: [id])
-  createdAt   DateTime @default(now())
-  isRead      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)
 }

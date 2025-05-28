@@ -15,20 +15,20 @@ install:
 
 dev:
 	@echo "Starting frontend development server..."
-	npm run dev
+	bun run dev
 
 gql-codegen:
 	@echo "Generating GraphQL types..."
-	npm run gql:codegen
+	bun run gql:codegen
 
 gql-watch:
 	@echo "Watching for GraphQL schema changes and generating types..."
-	npm run gql:watch
+	bun run gql:watch
 
 build:
 	@echo "Building frontend for production..."
-	npm run build
+	bun run build
 
 preview:
 	@echo "Previewing production build..."
-	npm run preview
+	bun run preview

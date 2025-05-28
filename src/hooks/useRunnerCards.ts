@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { RunnerCard, DayOfWeek, TimeOfDay } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotification } from "../contexts/NotificationContext";
@@ -13,6 +12,7 @@ import {
 } from "../graphql/runnerCard.graphql";
 
 interface CreateRunnerCardInput {
+  title: string; // Add title field
   location: string;
   days: DayOfWeek[];
   time: TimeOfDay;
