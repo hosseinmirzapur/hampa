@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { VerifyOtpAndRegisterUserInput } from './dto/verify-otp.dto';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -38,7 +38,9 @@ export class AuthService {
     return true;
   }
 
-  async verifyOtpAndRegisterUser(data: VerifyOtpAndRegisterUserInput) {
+  async verifyOtpAndRegisterUser(
+    data: VerifyOtpAndRegisterUserInput,
+  ): Promise<UserProfileType> {
     const { phone, otp, name, password } = data;
     const otpKey = `otp:${phone}`;
 
@@ -57,7 +59,7 @@ export class AuthService {
       await this.cacheManager.del(otpKey);
     }
 
-    let user = await this.prisma.user.findUnique({ where: { phone } });
+    const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) {
       throw new BadRequestException('User not found.'); // Should not happen if requestOtp was called
     }
