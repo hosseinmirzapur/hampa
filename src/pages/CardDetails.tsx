@@ -20,36 +20,35 @@ import { ConfirmationModal } from "../components/modals/ConfirmationModal";
 import { useQuery } from "@apollo/client"; // Keep useQuery here for GET_CARD_BY_ID
 import {
   GET_CARD_BY_ID,
-  EXPRESS_INTEREST_MUTATION, // Still needed for mutation type, but actual call via useRunnerCards
-  DELETE_RUNNER_CARD_MUTATION, // Still needed for mutation type, but actual call via useRunnerCards
-  UPDATE_CARD_VISIBILITY_MUTATION, // Still needed for mutation type, but actual call via useRunnerCards
+  DELETE_RUNNER_CARD_MUTATION,
+  UPDATE_RUNNER_CARD_MUTATION, // Use this for visibility updates
 } from "../graphql/runnerCard.graphql";
-import { RunnerCard } from "../types"; // Import RunnerCard type
+import { RunnerCardType } from "../generated/graphql"; // Use generated type for consistency
 
 const CardDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const {
-    expressInterest,
     deleteCard,
-    updateCardVisibility,
-    hasExpressedInterest,
+    updateRunnerCard, // Renamed from updateCardVisibility
+    // expressInterest and hasExpressedInterest are commented out for now
+    // as their implementation is unclear/incomplete in useRunnerCards
   } = useRunnerCards();
 
-  // Use useQuery for the initial card data fetch, using the GET_CARD_BY_ID from graphql file
   const { loading, error, data, refetch } = useQuery(GET_CARD_BY_ID, {
-    variables: { cardId: id }, // Use cardId as variable name as per graphql definition
-    skip: !id, // Skip query if id is not available
+    variables: { id: id },
+    skip: !id,
   });
 
-  const card: RunnerCard | undefined = data?.runnerCard; // Explicitly type card
+  // Use RunnerCardType from generated graphql types
+  const card: RunnerCardType | undefined = data?.runnerCard;
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
-  const [isExpressingInterest, setIsExpressingInterest] = useState(false);
+  // const [isExpressingInterest, setIsExpressingInterest] = useState(false); // Commented out
 
   useEffect(() => {
     if (!id) {
@@ -74,7 +73,6 @@ const CardDetails: React.FC = () => {
   }
 
   if (error) {
-    // Handle error fetching card
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow p-6 text-center text-error">
@@ -106,30 +104,32 @@ const CardDetails: React.FC = () => {
   }
 
   // Determine if the current user is the creator of the card
-  const isCreator = user?.id === card.creatorId;
+  // Assuming userId on RunnerCardType corresponds to creatorId
+  const isCreator = user?.id === card.userId;
 
   // Determine if the current user has already expressed interest
-  const userHasExpressedInterest = hasExpressedInterest(card.id);
+  // const userHasExpressedInterest = hasExpressedInterest(card.id); // Commented out
 
   const handleInterestClick = async () => {
-    if (isCreator || userHasExpressedInterest) return;
+    // if (isCreator || userHasExpressedInterest) return; // Commented out
 
-    setIsExpressingInterest(true);
+    // setIsExpressingInterest(true); // Commented out
 
-    try {
-      const success = await expressInterest(card.id); // Use the hook function
-      if (success) {
-        toast.success("علاقه‌مندی شما با موفقیت ثبت شد");
-        refetch(); // Refetch card data to show updated interested users list
-      } else {
-        toast.error("خطا در ثبت علاقه‌مندی");
-      }
-    } catch (error: any) {
-      console.error("Error expressing interest:", error);
-      toast.error("خطا در ثبت علاقه‌مندی: " + error.message);
-    } finally {
-      setIsExpressingInterest(false);
-    }
+    // try {
+    //   const success = await expressInterest(card.id); // Commented out
+    //   if (success) {
+    //     toast.success("علاقه‌مندی شما با موفقیت ثبت شد");
+    //     refetch();
+    //   } else {
+    //     toast.error("خطا در ثبت علاقه‌مندی");
+    //   }
+    // } catch (error: any) {
+    //   console.error("Error expressing interest:", error);
+    //   toast.error("خطا در ثبت علاقه‌مندی: " + error.message);
+    // } finally {
+    //   setIsExpressingInterest(false); // Commented out
+    // }
+    toast.info("قابلیت علاقه‌مندی هنوز پیاده‌سازی نشده است."); // Placeholder
   };
 
   const handleDeleteClick = () => {
@@ -140,7 +140,7 @@ const CardDetails: React.FC = () => {
     setIsDeleting(true);
 
     try {
-      const success = await deleteCard(card.id); // Use the hook function
+      const success = await deleteCard(card.id);
       if (success) {
         navigate("/my-cards");
         toast.success("کارت با موفقیت حذف شد");
@@ -164,14 +164,13 @@ const CardDetails: React.FC = () => {
     setIsUpdatingVisibility(true);
 
     try {
-      const success = await updateCardVisibility({
-        id: card.id,
+      const success = await updateRunnerCard(card.id, {
         isPhoneNumberPublic: !card.isPhoneNumberPublic,
-      }); // Use the hook function
+      });
       if (success) {
         setShowVisibilityModal(false);
         toast.success("وضعیت نمایش شماره تماس با موفقیت تغییر کرد");
-        refetch(); // Refetch card data to show updated visibility status
+        refetch();
       } else {
         toast.error("خطا در بروزرسانی وضعیت نمایش شماره تماس");
       }
@@ -186,12 +185,11 @@ const CardDetails: React.FC = () => {
   const handleShareClick = () => {
     if (navigator.share) {
       navigator.share({
-        title: `برنامه دویدن ${card.creatorName} در ${card.location}`,
-        text: `${card.creatorName} در همپا (دوست همراه دویدن) برنامه دویدن در ${card.location} در روزهای ${card.days.join("، ")} گذاشته است. به ما بپیوندید!`,
+        title: `برنامه دویدن ${card.title} در ${card.location}`, // Use card.title instead of creatorName
+        text: `${card.title} در همپا (دوست همراه دویدن) برنامه دویدن در ${card.location} در روزهای ${card.days.join("، ")} گذاشته است. به ما بپیوندید!`,
         url: window.location.href,
       });
     } else {
-      // Fallback
       navigator.clipboard.writeText(window.location.href);
       toast.info("لینک در کلیپ‌بورد کپی شد");
     }
@@ -206,19 +204,16 @@ const CardDetails: React.FC = () => {
               <div className="relative w-12 h-12 flex-shrink-0">
                 {/* TODO: Fetch and display creator profile picture */}
                 <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                  {card.creatorProfilePicture ? (
-                    <img
-                      src={card.creatorProfilePicture}
-                      alt="Creator Profile"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    card.creatorName.charAt(0)
-                  )}
+                  {/* card.creatorProfilePicture is not available directly */}
+                  {/* card.creatorName is not available directly */}
+                  {/* Placeholder for creator initial or default icon */}
+                  <span className="text-xl">🏃</span>
                 </div>
               </div>
               <div className="mr-3">
-                <h1 className="text-2xl font-bold">{card.creatorName}</h1>
+                {/* card.creatorName is not available directly */}
+                <h1 className="text-2xl font-bold">{card.title}</h1>{" "}
+                {/* Display card title instead */}
                 <p className="text-sm text-gray-500">
                   {formatRelativeTime(card.createdAt)}
                 </p>
@@ -274,13 +269,14 @@ const CardDetails: React.FC = () => {
             <div className="flex items-center text-gray-700">
               <Users size={20} className="ml-2 flex-shrink-0 text-primary" />
               <span className="text-lg">
-                {card.interestedUsers.length} نفر علاقه‌مند
+                {/* card.interestedUsers is not available directly */}0 نفر
+                علاقه‌مند {/* Placeholder */}
               </span>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {!isCreator && (
+            {/* {!isCreator && ( // Commented out
               <button
                 className={`btn flex-grow md:flex-grow-0 ${
                   userHasExpressedInterest
@@ -288,7 +284,7 @@ const CardDetails: React.FC = () => {
                     : "btn-primary"
                 }`}
                 onClick={handleInterestClick}
-                disabled={isExpressingInterest} // userHasExpressedInterest is already checked in the if condition
+                disabled={isExpressingInterest}
               >
                 <Heart
                   size={18}
@@ -299,6 +295,15 @@ const CardDetails: React.FC = () => {
                     ? "علاقه‌مند شده‌اید"
                     : "من هم علاقه‌مندم"}
                 </span>
+              </button>
+            )} */}
+            {!isCreator && (
+              <button
+                className="btn btn-primary flex-grow md:flex-grow-0"
+                onClick={handleInterestClick}
+              >
+                <Heart size={18} />
+                <span className="mr-1">من هم علاقه‌مندم</span>
               </button>
             )}
 

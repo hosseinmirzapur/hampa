@@ -115,7 +115,6 @@ const Login: React.FC = () => {
                 </button>
               </p>
 
-              {/* Note: For this MVP, the OTP code is always "123456" */}
               <OtpInput
                 onComplete={handleOtpComplete}
                 isError={!!phoneVerification.error}

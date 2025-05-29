@@ -59,7 +59,7 @@ export const CardForm: React.FC<CardFormProps> = ({
   } = useForm<CardFormValues>({
     resolver: zodResolver(cardFormSchema),
     defaultValues: {
-      phoneNumber: user?.phoneNumber || "",
+      phoneNumber: user?.phone || "",
       isPhoneNumberPublic: false,
     },
   });

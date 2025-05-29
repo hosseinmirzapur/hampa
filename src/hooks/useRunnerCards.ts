@@ -23,6 +23,7 @@ interface UpdateRunnerCardInput {
   title?: string;
   description?: string;
   imageUrl?: string;
+  isPhoneNumberPublic?: boolean;
 }
 
 export const useRunnerCards = () => {

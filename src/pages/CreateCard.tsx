@@ -1,143 +1,58 @@
-import React, { useState, useEffect } from "react"; // Import useEffect
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CardForm } from "../components/forms/CardForm";
 import { DayOfWeek, TimeOfDay } from "../types";
 import { useAuth } from "../contexts/AuthContext";
-import { OtpInput } from "../components/auth/OtpInput"; // Import OtpInput component
 import { toast } from "react-toastify";
-import { useRunnerCards } from "../hooks/useRunnerCards"; // Ensure this is imported
+import { useRunnerCards } from "../hooks/useRunnerCards";
 
 const CreateCard: React.FC = () => {
-  const [isSubmittingForm, setIsSubmittingForm] = useState(false); // Renamed for clarity
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
   const { createCard } = useRunnerCards();
-  const {
-    user,
-    login,
-    verifyOtp,
-    phoneVerification,
-    isLoading: isAuthLoading,
-    verifyLoading, // Destructure verifyLoading
-    resendLoading, // Destructure resendLoading
-  } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<"form" | "otp-verification">("form");
-  const [formData, setFormData] = useState<{
-    title: string;
-    location: string;
-    days: DayOfWeek[];
-    time: TimeOfDay;
-    phoneNumber: string;
-    isPhoneNumberPublic: boolean;
-  } | null>(null);
-
-  // Effect to handle card creation after successful OTP verification
-  useEffect(() => {
-    const handleCardCreation = async () => {
-      if (user && formData && step === "otp-verification") {
-        setIsSubmittingForm(true); // Set loading for card creation
-        try {
-          const newCard = await createCard({
-            title: formData.title,
-            location: formData.location,
-            days: formData.days,
-            time: formData.time,
-            phoneNumber: formData.phoneNumber,
-            isPhoneNumberPublic: formData.isPhoneNumberPublic,
-          });
-          if (newCard) {
-            toast.success("کارت با موفقیت ایجاد شد");
-            navigate(`/app/cards/${newCard.id}`);
-          } else {
-            toast.error("خطا در ایجاد کارت");
-          }
-        } catch (error: any) {
-          console.error("Error creating card after OTP:", error);
-          toast.error("خطا در ایجاد کارت: " + error.message);
-        } finally {
-          setIsSubmittingForm(false);
-        }
-      }
-    };
-    handleCardCreation();
-  }, [user, formData, step, createCard, navigate]);
-
   const handleFormSubmit = async (
-    title: string, // Add title as the first parameter
+    title: string,
     location: string,
     days: DayOfWeek[],
     time: TimeOfDay,
     phoneNumber: string,
     isPhoneNumberPublic: boolean
   ) => {
-    setIsSubmittingForm(true); // Set loading for form submission
-    setFormData({
-      title,
-      location,
-      days,
-      time,
-      phoneNumber,
-      isPhoneNumberPublic,
-    });
-
+    setIsSubmittingForm(true);
     try {
-      // Determine if OTP verification is needed
-      const needsOtpVerification = !user || user.phoneNumber !== phoneNumber;
+      if (!user) {
+        // This case should ideally not happen based on user's description
+        // but added for robustness. If not logged in, redirect to login.
+        toast.error("برای ایجاد کارت باید وارد شوید.");
+        navigate("/login");
+        return;
+      }
 
-      if (needsOtpVerification) {
-        // User is either not logged in or using a different phone number
-        // Need to verify the phone number with OTP
-        const loginSuccess = await login(phoneNumber);
-        if (loginSuccess) {
-          setStep("otp-verification");
-        } else {
-          toast.error("خطا در ارسال کد تایید");
-        }
+      // Proceed directly with card creation as OTP is not part of this flow
+      const newCard = await createCard({
+        title,
+        location,
+        days,
+        time,
+        phoneNumber,
+        isPhoneNumberPublic,
+      });
+      if (newCard) {
+        toast.success("کارت با موفقیت ایجاد شد");
+        navigate(`/app/cards/${newCard.id}`);
       } else {
-        // User is logged in and using their verified phone number
-        // Proceed directly with card creation
-        const newCard = await createCard({
-          title,
-          location,
-          days,
-          time,
-          phoneNumber,
-          isPhoneNumberPublic,
-        });
-        if (newCard) {
-          toast.success("کارت با موفقیت ایجاد شد");
-          navigate(`/app/cards/${newCard.id}`);
-        } else {
-          toast.error("خطا در ایجاد کارت");
-        }
+        toast.error("خطا در ایجاد کارت");
       }
     } catch (error: any) {
-      console.error("Error during form submission:", error);
+      console.error("Error during card creation:", error);
       toast.error("خطا در ایجاد کارت: " + error.message);
     } finally {
-      setIsSubmittingForm(false); // Reset loading after form submission attempt
+      setIsSubmittingForm(false);
     }
   };
 
-  const handleOtpComplete = async (otp: string) => {
-    if (!formData) return;
-
-    try {
-      await verifyOtp(otp);
-      // The useEffect hook will handle navigation after successful verification
-    } catch (error) {
-      console.error("OTP verification error:", error);
-      // Handle OTP verification error (e.g., show error message)
-    }
-  };
-
-  const handleResendOtp = () => {
-    if (formData) {
-      login(formData.phoneNumber);
-    }
-  };
-
-  // Show loading state if authentication is in progress
   if (isAuthLoading) {
     return (
       <div className="container mx-auto px-4 py-6 text-center">
@@ -150,37 +65,10 @@ const CreateCard: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="bg-white rounded-xl shadow p-6">
         <h1 className="text-2xl font-bold mb-6">ایجاد کارت جدید</h1>
-
-        {step === "form" ? (
-          <CardForm
-            onSubmit={handleFormSubmit}
-            isLoading={isSubmittingForm || isAuthLoading}
-          />
-        ) : (
-          <div className="space-y-6">
-            <p className="text-center">
-              برای تایید شماره تلفن، کد تایید را وارد کنید
-            </p>
-            <div className="flex justify-center">
-              <OtpInput // Use the OtpInput component
-                length={6}
-                onComplete={handleOtpComplete}
-                isError={!!phoneVerification?.error} // Pass error state based on truthiness
-                timeLeft={phoneVerification?.timeLeft || 0} // Pass time left
-                attemptsLeft={phoneVerification?.attemptsLeft || 0} // Pass attempts left
-                onResendClick={handleResendOtp} // Pass resend handler
-                phoneNumber={phoneVerification.phoneNumber} // Pass phoneNumber
-                verifyLoading={verifyLoading} // Pass verifyLoading
-                resendLoading={resendLoading} // Pass resendLoading
-              />
-            </div>
-            {phoneVerification?.error && ( // Display OTP error message
-              <p className="text-error text-center text-sm">
-                {phoneVerification.error}
-              </p>
-            )}
-          </div>
-        )}
+        <CardForm
+          onSubmit={handleFormSubmit}
+          isLoading={isSubmittingForm || isAuthLoading}
+        />
       </div>
     </div>
   );

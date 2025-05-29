@@ -1,7 +1,7 @@
-import React from 'react';
-import { Clock, MapPin, Phone, Eye, EyeOff, Heart } from 'lucide-react';
-import { RunnerCard as RunnerCardType } from '../../types';
-import { useAuth } from '../../contexts/AuthContext';
+import React from "react";
+import { Clock, MapPin, Phone, Eye, EyeOff, Heart } from "lucide-react";
+import { RunnerCardType } from "../../generated/graphql"; // Use generated type
+import { useAuth } from "../../contexts/AuthContext";
 
 interface RunnerCardProps {
   card: RunnerCardType;
@@ -16,15 +16,16 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
   onInterestClick,
   hasExpressedInterest = false,
   onClick,
-  className = '',
+  className = "",
 }) => {
   const { user } = useAuth();
-  const isCreator = user?.id === card.creatorId;
+  // Use card.userId as creatorId is not directly available on RunnerCardType
+  const isCreator = user?.id === card.userId;
 
   // Format days: if more than 2 days, show first 2 and +X more
   const formatDays = (days: string[]) => {
     if (days.length <= 2) {
-      return days.join('، ');
+      return days.join("، ");
     }
     return `${days[0]}، ${days[1]} و ${days.length - 2} روز دیگر`;
   };
@@ -42,6 +43,14 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
     }
   };
 
+  // Placeholder for creator name and profile picture as they are not directly available
+  // from RunnerCardType in the current schema.
+  // The backend needs to be updated to include a 'createdBy: UserProfileType' field
+  // in RunnerCardType for this information to be properly displayed.
+  const creatorNameFallback = "کاربر همپا"; // Generic name
+  const creatorInitial = creatorNameFallback.charAt(0);
+  const creatorProfilePictureFallback = null; // No picture available
+
   return (
     <div
       className={`card ${className} cursor-pointer transition-transform hover:-translate-y-1`}
@@ -50,20 +59,21 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
       <div className="p-4">
         <div className="flex items-center mb-3">
           <div className="relative w-10 h-10 flex-shrink-0">
-            {card.creatorProfilePicture ? (
+            {creatorProfilePictureFallback ? ( // Use fallback
               <img
-                src={card.creatorProfilePicture}
-                alt={card.creatorName}
+                src={creatorProfilePictureFallback}
+                alt={creatorNameFallback}
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
               <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                {card.creatorName.charAt(0)}
+                {creatorInitial} {/* Use fallback initial */}
               </div>
             )}
           </div>
           <div className="mr-3">
-            <h3 className="font-bold text-lg">{card.creatorName}</h3>
+            <h3 className="font-bold text-lg">{creatorNameFallback}</h3>{" "}
+            {/* Use fallback name */}
           </div>
         </div>
 
@@ -74,7 +84,9 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
           </div>
           <div className="flex items-center text-gray-700 mb-1">
             <Clock size={16} className="ml-1 flex-shrink-0" />
-            <span className="text-sm">{formatDays(card.days)} - {card.time}</span>
+            <span className="text-sm">
+              {formatDays(card.days)} - {card.time}
+            </span>
           </div>
           <div className="flex items-center text-gray-700">
             <Phone size={16} className="ml-1 flex-shrink-0" />
@@ -95,7 +107,8 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center">
             <span className="text-xs text-gray-500">
-              {card.interestedUsers.length} علاقه‌مند
+              {/* card.interestedUsers is not available directly */}0 علاقه‌مند{" "}
+              {/* Placeholder */}
             </span>
           </div>
 
@@ -103,17 +116,21 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
             <button
               className={`btn ${
                 hasExpressedInterest
-                  ? 'bg-gray-100 text-primary hover:bg-gray-200 cursor-default'
-                  : 'btn-outline'
+                  ? "bg-gray-100 text-primary hover:bg-gray-200 cursor-default"
+                  : "btn-outline"
               }`}
               onClick={handleInterestClick}
               disabled={hasExpressedInterest}
             >
               <Heart
                 size={16}
-                className={hasExpressedInterest ? 'fill-primary' : ''}
+                className={hasExpressedInterest ? "fill-primary" : ""}
               />
-              <span>{hasExpressedInterest ? 'علاقه‌مند شده‌اید' : 'من هم علاقه‌مندم'}</span>
+              <span>
+                {hasExpressedInterest
+                  ? "علاقه‌مند شده‌اید"
+                  : "من هم علاقه‌مندم"}
+              </span>
             </button>
           )}
         </div>

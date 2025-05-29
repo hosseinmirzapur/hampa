@@ -1,5 +1,11 @@
 import { ObjectType, Field, InputType } from '@nestjs/graphql';
-import { IsString, IsOptional, Length, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  Length,
+  IsUrl,
+  IsBoolean,
+} from 'class-validator';
 import { RunnerCard } from '@prisma/client';
 
 @ObjectType()
@@ -114,5 +120,6 @@ export class UpdateRunnerCardInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsBoolean()
   isPhoneNumberPublic?: boolean;
 }

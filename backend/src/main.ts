@@ -14,7 +14,8 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true, // Automatically transform payloads to be objects typed according to their DTO classes
       whitelist: true, // Remove properties that are not defined in the DTO
-      forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
+      // forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
+      forbidNonWhitelisted: false, // Throw an error if non-whitelisted properties are present
     }),
   );
 

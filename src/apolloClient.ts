@@ -26,11 +26,6 @@ const authLink = setContext((_, { headers }) => {
     ...headers,
     authorization: token ? `Bearer ${token}` : "",
   };
-  console.log(
-    "AuthLink: Token from reactive variable:",
-    token ? "Present" : "Missing"
-  );
-  console.log("AuthLink: Sending headers:", newHeaders);
   return {
     headers: newHeaders,
   };
