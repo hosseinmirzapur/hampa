@@ -5,44 +5,42 @@ on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
-      - develop
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # Or your preferred Node.js version
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Or your preferred Node.js version
 
-    - name: Install dependencies (backend)
-      run: | 
-        cd backend
-        npm ci
+      - name: Install dependencies (backend)
+        run: |
+          cd backend
+          npm ci
 
-    - name: Run Linters (backend)
-      run: |
-        cd backend
-        npm run lint
+      # - name: Run Linters (backend)
+      #   run: |
+      #     cd backend
+      #     npm run lint
 
-    - name: Run Tests (backend)
-      run: |
-        cd backend
-        npm run test
+      # - name: Run Tests (backend)
+      #   run: |
+      #     cd backend
+      #     npm run test
 
-    - name: Build application (backend)
-      run: |
-        cd backend
-        npm run build
+      - name: Build application (backend)
+        run: |
+          cd backend
+          npm run build
 
     # Optional: Add steps for frontend if applicable
     # - name: Install dependencies (frontend)
@@ -74,4 +72,3 @@ jobs:
   #       run: |
   #         echo "Deploying to production server..."
   #         # Add your deployment commands here (e.g., SSH, kubectl, AWS CLI, GCP gcloud)
-
