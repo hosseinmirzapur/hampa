@@ -17,30 +17,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: "20" # Or your preferred Node.js version
+          bun-version: latest # Or a specific Bun version like "1.1.x"
 
       - name: Install dependencies (backend)
         run: |
           cd backend
-          npm ci
+          bun install --frozen-lockfile
 
       # - name: Run Linters (backend)
       #   run: |
       #     cd backend
-      #     npm run lint
+      #     bun run lint # Use bun run for scripts
 
       # - name: Run Tests (backend)
       #   run: |
       #     cd backend
-      #     npm run test
+      #     bun run test # Use bun run for scripts
 
       - name: Build application (backend)
         run: |
           cd backend
-          npm run build
+          bun run build # Use bun run for scripts
 
     # Optional: Add steps for frontend if applicable
     # - name: Install dependencies (frontend)
