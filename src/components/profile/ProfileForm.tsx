@@ -26,7 +26,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   isLoading = false,
 }) => {
   const [profileImage, setProfileImage] = useState<string | null>(
-    user.profilePicture
+    user.avatarUrl
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -84,7 +84,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {profileImage ? (
             <img
               src={profileImage}
-              alt={user.name}
+              alt={user.name || "Profile"}
               className="w-full h-full rounded-full object-cover border-2 border-primary"
             />
           ) : (
@@ -169,11 +169,15 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-sm text-gray-600">شماره موبایل:</span>
-            <span className="text-sm">{user.phoneNumber}</span>
+            <span className="text-sm">{user.phone}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">تاریخ عضویت:</span>
-            <span className="text-sm">{formatDate(user.membershipDate)}</span>
+            <span className="text-sm text-gray-600">ایمیل:</span>
+            <span className="text-sm">{user.email || "-"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-gray-600">بیو:</span>
+            <span className="text-sm">{user.bio || "-"}</span>
           </div>
         </div>
       </div>

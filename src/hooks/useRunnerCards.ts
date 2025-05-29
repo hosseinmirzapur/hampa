@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_USER_CARDS,
   GET_ALL_CARDS,
-  GET_CARD_BY_ID,
   CREATE_RUNNER_CARD_MUTATION,
   DELETE_RUNNER_CARD_MUTATION,
   UPDATE_RUNNER_CARD_MUTATION,
@@ -45,7 +44,9 @@ export const useRunnerCards = () => {
     data: allCardsData,
     loading: allCardsLoading,
     error: allCardsError,
-  } = useQuery(GET_ALL_CARDS);
+  } = useQuery(GET_ALL_CARDS, {
+    skip: !user, // Skip query if user is not logged in
+  });
 
   // Derived state for all cards
   const cards = allCardsData?.allRunnerCards || [];

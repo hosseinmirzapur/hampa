@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Import useEffect
 import { useAuth } from "../contexts/AuthContext";
 import { ProfileForm } from "../components/profile/ProfileForm";
 import { LogOut } from "lucide-react";
 import { ConfirmationModal } from "../components/modals/ConfirmationModal";
 import { toast } from "react-toastify";
+import { useQuery } from "@apollo/client";
+import { GET_CURRENT_USER } from "../graphql/user.graphql";
 
 const Profile: React.FC = () => {
-  const { user, updateUser, logout } = useAuth();
+  const { user: authUser, isAuthenticated, updateUser, logout } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  if (!user) {
+  // Fetch current user profile from backend
+  const { data, loading, error, refetch } = useQuery(GET_CURRENT_USER, {
+    // Get refetch
+    skip: true, // Always skip initially
+  });
+
+  // Refetch when isAuthenticated becomes true
+  useEffect(() => {
+    if (isAuthenticated) {
+      refetch();
+    }
+  }, [isAuthenticated, refetch]);
+
+  const user = data?.me || authUser;
+
+  if (loading || !isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow p-6 animate-pulse">
@@ -22,6 +39,16 @@ const Profile: React.FC = () => {
     );
   }
 
+  if (error) {
+    // Handle error state
+    toast.error("خطا در بارگذاری اطلاعات پروفایل: " + error.message);
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <p className="text-error text-center">خطا در بارگذاری پروفایل.</p>
+      </div>
+    );
+  }
+
   const handleProfileUpdate = async (
     name: string,
     birthDate: string | null
@@ -29,14 +56,11 @@ const Profile: React.FC = () => {
     setIsUpdating(true);
 
     try {
-      // In a real app, this would send data to the backend
-      updateUser({
+      // This will now call the backend via AuthContext's updateUser
+      await updateUser({
         name,
-        birthDate,
+        // birthDate: birthDate, // birthDate is not in UserProfileType, will handle this later if needed
       });
-
-      // Simulate delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Show success feedback
       toast.success("اطلاعات پروفایل با موفقیت به‌روزرسانی شد");

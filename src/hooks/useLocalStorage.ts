@@ -34,7 +34,12 @@ export function useLocalStorage<T>(
 
       // Save to local storage
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        // Check if the value is already a string to avoid double stringification
+        const finalValue =
+          typeof valueToStore === "string"
+            ? valueToStore
+            : JSON.stringify(valueToStore);
+        window.localStorage.setItem(key, finalValue);
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);

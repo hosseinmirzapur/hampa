@@ -35,8 +35,13 @@ export type CreateJointRunInput = {
 };
 
 export type CreateRunnerCardInput = {
+  days: Array<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
+  isPhoneNumberPublic: Scalars['Boolean']['input'];
+  location: Scalars['String']['input'];
+  phoneNumber: Scalars['String']['input'];
+  time: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -90,7 +95,7 @@ export type Mutation = {
   leaveRun: JointRunParticipantType;
   login: AuthPayload;
   markNotificationAsRead: NotificationType;
-  requestOtp: Scalars['Boolean']['output'];
+  requestOtp: Scalars['String']['output'];
   testProtectedRoute: Scalars['String']['output'];
   updateJointRun: JointRunType;
   updateRunnerCard: RunnerCardType;
@@ -213,9 +218,14 @@ export type RequestOtpInput = {
 export type RunnerCardType = {
   __typename?: 'RunnerCardType';
   createdAt: Scalars['DateTime']['output'];
+  days: Array<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
+  isPhoneNumberPublic: Scalars['Boolean']['output'];
+  location: Scalars['String']['output'];
+  phoneNumber: Scalars['String']['output'];
+  time: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   userId: Scalars['String']['output'];
@@ -231,8 +241,13 @@ export type UpdateJointRunInput = {
 };
 
 export type UpdateRunnerCardInput = {
+  days?: InputMaybe<Array<Scalars['String']['input']>>;
   description?: InputMaybe<Scalars['String']['input']>;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
+  isPhoneNumberPublic?: InputMaybe<Scalars['Boolean']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
+  phoneNumber?: InputMaybe<Scalars['String']['input']>;
+  time?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -240,7 +255,9 @@ export type UpdateUserProfileInput = {
   avatarUrl?: InputMaybe<Scalars['String']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
+  hasSubscription?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  subscriptionExpiryDate?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 export type UserProfileType = {
@@ -249,51 +266,53 @@ export type UserProfileType = {
   bio?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   email?: Maybe<Scalars['String']['output']>;
+  hasSubscription: Scalars['Boolean']['output'];
   id: Scalars['String']['output'];
   name?: Maybe<Scalars['String']['output']>;
   phone: Scalars['String']['output'];
+  subscriptionExpiryDate?: Maybe<Scalars['DateTime']['output']>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
 export type VerifyOtpAndRegisterUserInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   otp: Scalars['String']['input'];
-  password: Scalars['String']['input'];
+  password?: InputMaybe<Scalars['String']['input']>;
   phone: Scalars['String']['input'];
 };
 
-export type RunnerCardFieldsFragment = { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any };
+export type RunnerCardFieldsFragment = { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any };
 
 export type GetMyRunnerCardsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyRunnerCardsQuery = { __typename?: 'Query', myRunnerCards: Array<{ __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any }> };
+export type GetMyRunnerCardsQuery = { __typename?: 'Query', myRunnerCards: Array<{ __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any }> };
 
 export type GetAllCardsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllCardsQuery = { __typename?: 'Query', allRunnerCards: Array<{ __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any }> };
+export type GetAllCardsQuery = { __typename?: 'Query', allRunnerCards: Array<{ __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any }> };
 
 export type GetCardByIdQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetCardByIdQuery = { __typename?: 'Query', runnerCard?: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any } | null };
+export type GetCardByIdQuery = { __typename?: 'Query', runnerCard?: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any } | null };
 
 export type CreateRunnerCardMutationVariables = Exact<{
   createRunnerCardInput: CreateRunnerCardInput;
 }>;
 
 
-export type CreateRunnerCardMutation = { __typename?: 'Mutation', createRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any } };
+export type CreateRunnerCardMutation = { __typename?: 'Mutation', createRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any } };
 
 export type DeleteRunnerCardMutationVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type DeleteRunnerCardMutation = { __typename?: 'Mutation', deleteRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any } };
+export type DeleteRunnerCardMutation = { __typename?: 'Mutation', deleteRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any } };
 
 export type UpdateRunnerCardMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -301,7 +320,19 @@ export type UpdateRunnerCardMutationVariables = Exact<{
 }>;
 
 
-export type UpdateRunnerCardMutation = { __typename?: 'Mutation', updateRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, userId: string, createdAt: any, updatedAt: any } };
+export type UpdateRunnerCardMutation = { __typename?: 'Mutation', updateRunnerCard: { __typename?: 'RunnerCardType', id: string, title: string, description?: string | null, imageUrl?: string | null, location: string, days: Array<string>, time: string, phoneNumber: string, isPhoneNumberPublic: boolean, userId: string, createdAt: any, updatedAt: any } };
+
+export type GetCurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCurrentUserQuery = { __typename?: 'Query', me: { __typename?: 'UserProfileType', id: string, phone: string, name?: string | null, email?: string | null, avatarUrl?: string | null, bio?: string | null, hasSubscription: boolean, subscriptionExpiryDate?: any | null } };
+
+export type UpdateUserProfileMutationVariables = Exact<{
+  updateUserProfileInput: UpdateUserProfileInput;
+}>;
+
+
+export type UpdateUserProfileMutation = { __typename?: 'Mutation', updateUserProfile: { __typename?: 'UserProfileType', id: string, phone: string, name?: string | null, email?: string | null, avatarUrl?: string | null, bio?: string | null, hasSubscription: boolean, subscriptionExpiryDate?: any | null } };
 
 export const RunnerCardFieldsFragmentDoc = gql`
     fragment RunnerCardFields on RunnerCardType {
@@ -309,6 +340,11 @@ export const RunnerCardFieldsFragmentDoc = gql`
   title
   description
   imageUrl
+  location
+  days
+  time
+  phoneNumber
+  isPhoneNumberPublic
   userId
   createdAt
   updatedAt
@@ -517,3 +553,84 @@ export function useUpdateRunnerCardMutation(baseOptions?: Apollo.MutationHookOpt
 export type UpdateRunnerCardMutationHookResult = ReturnType<typeof useUpdateRunnerCardMutation>;
 export type UpdateRunnerCardMutationResult = Apollo.MutationResult<UpdateRunnerCardMutation>;
 export type UpdateRunnerCardMutationOptions = Apollo.BaseMutationOptions<UpdateRunnerCardMutation, UpdateRunnerCardMutationVariables>;
+export const GetCurrentUserDocument = gql`
+    query GetCurrentUser {
+  me {
+    id
+    phone
+    name
+    email
+    avatarUrl
+    bio
+    hasSubscription
+    subscriptionExpiryDate
+  }
+}
+    `;
+
+/**
+ * __useGetCurrentUserQuery__
+ *
+ * To run a query within a React component, call `useGetCurrentUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCurrentUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCurrentUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCurrentUserQuery(baseOptions?: Apollo.QueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+      }
+export function useGetCurrentUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+        }
+export type GetCurrentUserQueryHookResult = ReturnType<typeof useGetCurrentUserQuery>;
+export type GetCurrentUserLazyQueryHookResult = ReturnType<typeof useGetCurrentUserLazyQuery>;
+export type GetCurrentUserQueryResult = Apollo.QueryResult<GetCurrentUserQuery, GetCurrentUserQueryVariables>;
+export const UpdateUserProfileDocument = gql`
+    mutation UpdateUserProfile($updateUserProfileInput: UpdateUserProfileInput!) {
+  updateUserProfile(updateUserProfileInput: $updateUserProfileInput) {
+    id
+    phone
+    name
+    email
+    avatarUrl
+    bio
+    hasSubscription
+    subscriptionExpiryDate
+  }
+}
+    `;
+export type UpdateUserProfileMutationFn = Apollo.MutationFunction<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>;
+
+/**
+ * __useUpdateUserProfileMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserProfileMutation, { data, loading, error }] = useUpdateUserProfileMutation({
+ *   variables: {
+ *      updateUserProfileInput: // value for 'updateUserProfileInput'
+ *   },
+ * });
+ */
+export function useUpdateUserProfileMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>(UpdateUserProfileDocument, options);
+      }
+export type UpdateUserProfileMutationHookResult = ReturnType<typeof useUpdateUserProfileMutation>;
+export type UpdateUserProfileMutationResult = Apollo.MutationResult<UpdateUserProfileMutation>;
+export type UpdateUserProfileMutationOptions = Apollo.BaseMutationOptions<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>;

@@ -8,7 +8,9 @@ import React, {
 import { User } from "../types";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
-import { toast } from "react-toastify"; // Add toast import
+import { toast } from "react-toastify";
+import { UPDATE_USER_PROFILE_MUTATION } from "../graphql/user.graphql";
+import { authTokenVar } from "../apolloClient"; // Import authTokenVar
 
 const REQUEST_OTP_MUTATION = gql`
   mutation RequestOtp($requestOtpInput: RequestOtpInput!) {
@@ -106,7 +108,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const [requestOtpMutation] = useMutation(REQUEST_OTP_MUTATION);
   const [verifyOtpAndRegisterUserMutation] = useMutation(VERIFY_OTP_MUTATION);
-  const [loginMutation] = useMutation(LOGIN_MUTATION); // New: login mutation
+  const [loginMutation] = useMutation(LOGIN_MUTATION);
+  const [updateUserProfileMutation] = useMutation(UPDATE_USER_PROFILE_MUTATION); // Initialize mutation
 
   // Handle countdown timer for OTP verification
   useEffect(() => {
@@ -233,8 +236,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         if (loginData?.login) {
           const { accessToken, user: userProfile } = loginData.login;
           setUser(userProfile);
-          setAuthToken(accessToken);
+          setAuthToken(accessToken); // Updates localStorage
+          authTokenVar(accessToken); // Update reactive variable
           resetVerification();
+          client.resetStore();
           return true;
         } else {
           const errorMessage =
@@ -268,14 +273,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = () => {
     setUser(null);
-    setAuthToken(null); // New: Clear auth token on logout
+    setAuthToken(null); // Clears localStorage
+    authTokenVar(null); // Clear reactive variable
     resetVerification();
     // In a real app, you would also invalidate tokens, etc.
   };
 
-  const updateUser = (updatedUser: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...updatedUser });
+  const updateUser = async (updatedUser: Partial<User>) => {
+    if (!user) return;
+
+    try {
+      const { data, errors } = await updateUserProfileMutation({
+        variables: {
+          updateUserProfileInput: {
+            name: updatedUser.name,
+          },
+        },
+      });
+
+      if (data?.updateUserProfile) {
+        setUser(data.updateUserProfile);
+        toast.success("پروفایل با موفقیت به‌روزرسانی شد.");
+      } else {
+        const errorMessage =
+          errors?.[0]?.message || "خطا در به‌روزرسانی پروفایل";
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (error: unknown) {
+      console.error("Error updating user profile:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "خطا در به‌روزرسانی پروفایل";
+      toast.error(errorMessage);
+      throw error;
     }
   };
 

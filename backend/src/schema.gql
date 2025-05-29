@@ -154,7 +154,9 @@ input UpdateUserProfileInput {
   avatarUrl: String
   bio: String
   email: String
+  hasSubscription: Boolean
   name: String
+  subscriptionExpiryDate: DateTime
 }
 
 type UserProfileType {
@@ -162,9 +164,11 @@ type UserProfileType {
   bio: String
   createdAt: DateTime!
   email: String
+  hasSubscription: Boolean!
   id: String!
   name: String
   phone: String!
+  subscriptionExpiryDate: DateTime
   updatedAt: DateTime!
 }
 

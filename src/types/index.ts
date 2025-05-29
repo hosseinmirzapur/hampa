@@ -1,10 +1,11 @@
 export type User = {
   id: string;
-  phoneNumber: string;
-  name: string;
-  birthDate: string | null;
-  profilePicture: string | null;
-  membershipDate: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  birthDate?: string | null; // Make optional as it's not in the GraphQL response for 'me'
   hasSubscription: boolean;
   subscriptionExpiryDate: string | null;
 };

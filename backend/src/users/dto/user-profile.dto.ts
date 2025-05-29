@@ -27,6 +27,12 @@ export class UserProfileType implements Partial<User> {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => Boolean, { defaultValue: false }) // Add hasSubscription
+  hasSubscription: boolean;
+
+  @Field(() => Date, { nullable: true }) // Add subscriptionExpiryDate
+  subscriptionExpiryDate?: Date;
 }
 
 @InputType()
@@ -36,6 +42,14 @@ export class UpdateUserProfileInput {
   @IsString()
   @Length(1, 100)
   name?: string;
+
+  @Field(() => Boolean, { nullable: true }) // Add hasSubscription to input
+  @IsOptional()
+  hasSubscription?: boolean;
+
+  @Field(() => Date, { nullable: true }) // Add subscriptionExpiryDate to input
+  @IsOptional()
+  subscriptionExpiryDate?: Date;
 
   @Field({ nullable: true })
   @IsOptional()

@@ -100,6 +100,8 @@ export class AuthService {
       email: updatedUser.email ?? undefined,
       avatarUrl: updatedUser.avatarUrl ?? undefined,
       bio: updatedUser.bio ?? undefined,
+      hasSubscription: updatedUser.hasSubscription,
+      subscriptionExpiryDate: updatedUser.subscriptionExpiryDate ?? undefined,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
     };
@@ -108,7 +110,23 @@ export class AuthService {
   }
 
   async login(phone: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { phone } });
+    const user = await this.prisma.user.findUnique({
+      where: { phone },
+      select: {
+        // Explicitly select all fields needed, including password
+        id: true,
+        phone: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        bio: true,
+        hasSubscription: true,
+        subscriptionExpiryDate: true,
+        createdAt: true,
+        updatedAt: true,
+        password: true, // Explicitly select password
+      },
+    });
 
     if (!user) {
       // If user is not found, it means they haven't even gone through requestOtp yet.
@@ -129,6 +147,8 @@ export class AuthService {
         email: user.email ?? undefined,
         avatarUrl: user.avatarUrl ?? undefined,
         bio: user.bio ?? undefined,
+        hasSubscription: user.hasSubscription,
+        subscriptionExpiryDate: user.subscriptionExpiryDate ?? undefined,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
@@ -154,6 +174,8 @@ export class AuthService {
       email: user.email ?? undefined,
       avatarUrl: user.avatarUrl ?? undefined,
       bio: user.bio ?? undefined,
+      hasSubscription: user.hasSubscription,
+      subscriptionExpiryDate: user.subscriptionExpiryDate ?? undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

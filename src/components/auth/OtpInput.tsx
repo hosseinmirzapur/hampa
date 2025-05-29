@@ -25,6 +25,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   resendLoading,
 }) => {
   const [otp, setOtp] = useState("");
+  const [hasCompleted, setHasCompleted] = useState(false); // New state to track completion
   const isDisabled = timeLeft > 0 && attemptsLeft === 0;
 
   // Format remaining time as MM:SS
@@ -34,19 +35,22 @@ export const OtpInput: React.FC<OtpInputProps> = ({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Reset OTP on error
+  // Reset OTP on error and allow new completion attempts
   useEffect(() => {
     if (isError) {
       setOtp("");
+      setHasCompleted(false); // Reset hasCompleted on error
     }
   }, [isError]);
 
   // Trigger completion callback when OTP is fully entered
   useEffect(() => {
-    if (otp.length === length) {
+    if (otp.length === length && !verifyLoading && !hasCompleted) {
+      // Add !hasCompleted condition
+      setHasCompleted(true); // Set hasCompleted to true before calling onComplete
       onComplete(otp);
     }
-  }, [otp, length, onComplete]);
+  }, [otp, length, onComplete, verifyLoading, hasCompleted]); // Add hasCompleted to dependency array
 
   return (
     <div className="space-y-4">

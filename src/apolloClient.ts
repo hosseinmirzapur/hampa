@@ -1,25 +1,43 @@
-import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
+import {
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+  ApolloLink,
+  makeVar, // Import makeVar
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 
-const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT || 'http://localhost:3000/graphql';
+const GRAPHQL_ENDPOINT =
+  import.meta.env.VITE_REACT_APP_GRAPHQL_ENDPOINT ||
+  "http://localhost:3000/graphql";
+
+// Create a reactive variable for the authentication token
+export const authTokenVar = makeVar<string | null>(
+  localStorage.getItem("hampa-auth-token") // Initialize from localStorage
+);
 
 const httpLink = createHttpLink({
   uri: GRAPHQL_ENDPOINT,
 });
 
 const authLink = setContext((_, { headers }) => {
-  // Get the authentication token from wherever it's stored (e.g., localStorage)
-  const token = localStorage.getItem('hampa-auth-token');
+  const token = authTokenVar(); // Get token from reactive variable
+  const newHeaders = {
+    ...headers,
+    authorization: token ? `Bearer ${token}` : "",
+  };
+  console.log(
+    "AuthLink: Token from reactive variable:",
+    token ? "Present" : "Missing"
+  );
+  console.log("AuthLink: Sending headers:", newHeaders);
   return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
+    headers: newHeaders,
   };
 });
 
 const client = new ApolloClient({
-  link: ApolloLink.from([authLink, httpLink]), // Ensure authLink comes before httpLink
+  link: ApolloLink.from([authLink, httpLink]),
   cache: new InMemoryCache({
     // Optional: Configure type policies for cache normalization if needed
     // typePolicies: {
@@ -32,7 +50,7 @@ const client = new ApolloClient({
     //   // ... other types
     // }
   }),
-  connectToDevTools: process.env.NODE_ENV === 'development', // Enable Apollo DevTools in development
+  connectToDevTools: process.env.NODE_ENV === "development",
 });
 
 export default client;

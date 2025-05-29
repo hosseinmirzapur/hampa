@@ -34,6 +34,8 @@ export class JointRunsService {
       email: user.email ?? undefined,
       avatarUrl: user.avatarUrl ?? undefined,
       bio: user.bio ?? undefined,
+      hasSubscription: user.hasSubscription, // Add new field
+      subscriptionExpiryDate: user.subscriptionExpiryDate ?? undefined, // Add new field
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
