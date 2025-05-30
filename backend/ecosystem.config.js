@@ -6,6 +6,7 @@ module.exports = {
       script: 'npm',
       args: 'run start:prod',
       cwd: './',
+      interpreter: 'node',
       instances: 1,
       exec_mode: 'cluster',
       watch: false,
