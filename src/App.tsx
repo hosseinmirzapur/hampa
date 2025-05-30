@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -20,15 +20,66 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   const location = useLocation();
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const installButtonRef = useRef<HTMLButtonElement>(null);
 
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setDeferredPrompt(e);
+      // Optionally, show a UI element to the user to indicate installability
+      console.log("beforeinstallprompt event fired.");
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      // Show the install prompt
+      (deferredPrompt as any).prompt();
+      // Wait for the user to respond to the prompt
+      (deferredPrompt as any).userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("User accepted the A2HS prompt");
+        } else {
+          console.log("User dismissed the A2HS prompt");
+        }
+        // We've used the prompt, and can't use it again. Clear it.
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
   return (
     <AuthProvider>
       <NotificationProvider>
+        {deferredPrompt && (
+          <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4">
+            <p className="m-0">همپا را برای تجربه بهتر نصب کنید!</p>
+            <button
+              ref={installButtonRef}
+              onClick={handleInstallClick}
+              className="bg-white text-[#009688] border-none py-2 px-4 rounded-md cursor-pointer font-bold"
+            >
+              نصب برنامه
+            </button>
+          </div>
+        )}
         {/* Wrap Routes with AnimatePresence */}
         <Routes location={location} key={location.pathname}>
           {/* Pass location and key to Routes */}

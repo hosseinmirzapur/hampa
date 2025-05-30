@@ -48,6 +48,20 @@ Instructions on how to set up and run the project locally.
 
 (Add specific installation and setup steps here, e.g., cloning the repo, installing dependencies, running the development server)
 
+## Progressive Web App (PWA) Installation 📱
+
+Hampa is a Progressive Web App (PWA), which means you can install it directly to your mobile device's home screen and use it like a native application, even offline!
+
+### How to Install:
+
+1.  **Visit the Application**: Open the Hampa application in your mobile browser (e.g., Chrome on Android, Safari on iOS). Ensure you are visiting the deployed version over HTTPS.
+2.  **Look for the Install Prompt**:
+    *   **Custom Prompt**: You might see a banner at the bottom of the screen prompting you to "Install App". Tap this button to add Hampa to your home screen.
+    *   **Browser's Native Option**: If the custom prompt doesn't appear immediately, you can usually find an "Add to Home Screen" or "Install App" option in your browser's menu (e.g., Chrome's three-dot menu, Safari's Share Sheet).
+3.  **Confirm Installation**: Follow the on-screen instructions to complete the installation.
+
+Once installed, Hampa will appear as an icon on your home screen, providing a fast, reliable, and engaging experience.
+
 ## 🛠️ Contribution Guidelines
 
 We welcome contributions to Hampa! Please read our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) to understand the expected behavior in our community.
