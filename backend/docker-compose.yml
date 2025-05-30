@@ -1,25 +1,37 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:13-alpine
+    image: postgres:16-alpine # Use a specific, stable version for production
     restart: always
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
-    ports:
-      - "5432:5432"
+    # For production, typically the database port is not exposed directly to the host
+    # unless explicitly required and secured. Backend connects internally.
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck: # Add healthcheck for database readiness
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:6-alpine
+    image: redis:7-alpine # Use a specific, stable version for production
     restart: always
-    ports:
-      - "6379:6379"
+    # For production, typically Redis port is not exposed directly to the host
+    # unless explicitly required and secured. Backend connects internally.
+    # ports:
+    #   - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck: # Add healthcheck for Redis readiness
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -31,15 +43,33 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      SENTRY_DSN: ${SENTRY_DSN}
+      # Add other production environment variables here, e.g., NODE_ENV=production
+      NODE_ENV: production
     ports:
-      - "3000:3000"
+      - "3000:3000" # Expose backend port if it needs to be accessible from the host
     depends_on:
-      - db
-      - redis
-    volumes:
-      - .:/usr/src/app # Mount the current directory to enable live-reloading during development
-      - /usr/src/app/node_modules # Keep node_modules outside the mounted volume to prevent conflicts
+      db:
+        condition: service_healthy # Ensure db is healthy before starting backend
+      redis:
+        condition: service_healthy # Ensure redis is healthy before starting backend
+    # Remove development volumes for production readiness
+    # volumes:
+    #   - .:/usr/src/app
+    #   - /usr/src/app/node_modules
+    healthcheck: # Add healthcheck for backend application readiness
+      test: ["CMD", "curl", "-f", "http://localhost:3000/graphql"] # Assuming GraphQL endpoint for health check
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s # Give the app some time to start
+    deploy: # Add basic deployment configurations for production
+      resources:
+        limits:
+          cpus: '0.5' # Limit CPU usage
+          memory: 512M # Limit memory usage
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
 volumes:
   postgres_data:
