@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 function App() {
   const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false); // New state
   const installButtonRef = useRef<HTMLButtonElement>(null);
 
   // Scroll to top on route change
@@ -29,60 +30,93 @@ function App() {
   }, [location.pathname]);
 
   useEffect(() => {
+    // Check if the app is already running as a PWA (standalone)
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true
+    ) {
+      console.log("PWA is already running in standalone mode.");
+      setIsAppInstalled(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
+      // Prevent the mini-infobar from appearing on mobile (default browser prompt)
       e.preventDefault();
-      // Stash the event so it can be triggered later.
+      // Stash the event so it can be triggered later by your custom UI.
       setDeferredPrompt(e);
-      // Optionally, show a UI element to the user to indicate installability
-      console.log("beforeinstallprompt event fired.");
+      console.log(
+        "PWA: 'beforeinstallprompt' event fired. App is installable."
+      );
+      // Ensure the install button is shown only if not already installed
+      if (!isAppInstalled) {
+        // Or you could directly control a showInstallBanner state
+        // Your UI will be shown based on `deferredPrompt` and `isAppInstalled`
+      }
+    };
+
+    const handleAppInstalled = () => {
+      console.log("PWA: 'appinstalled' event fired. App has been installed.");
+      // Clear the deferredPrompt and hide the custom install button/banner
+      setDeferredPrompt(null);
+      setIsAppInstalled(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
         handleBeforeInstallPrompt
       );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [isAppInstalled]); // Added isAppInstalled to dependencies, though its direct change within this effect is less common.
+  // The main goal is to set it once based on initial standalone check or appinstalled event.
 
-  const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // Show the install prompt
+      // Show the browser's install prompt
       (deferredPrompt as any).prompt();
       // Wait for the user to respond to the prompt
-      (deferredPrompt as any).userChoice.then((choiceResult: any) => {
+      try {
+        const choiceResult = await (deferredPrompt as any).userChoice;
         if (choiceResult.outcome === "accepted") {
           console.log("User accepted the A2HS prompt");
+          // The 'appinstalled' event will typically fire, and handle hiding the prompt.
         } else {
           console.log("User dismissed the A2HS prompt");
         }
-        // We've used the prompt, and can't use it again. Clear it.
-        setDeferredPrompt(null);
-      });
+      } catch (error) {
+        console.error("Error with userChoice:", error);
+      }
+      // We've used the prompt, and can't use it again with this event instance.
+      setDeferredPrompt(null); // Hide your custom install UI
     }
   };
+
+  // Determine if the custom install banner should be shown
+  const showInstallBanner = deferredPrompt && !isAppInstalled;
 
   return (
     <AuthProvider>
       <NotificationProvider>
-        {deferredPrompt && (
-          <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4">
-            <p className="m-0">همپا را برای تجربه بهتر نصب کنید!</p>
+        {showInstallBanner && ( // Updated condition
+          <div
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4 animate-slide-up"
+            // Using your animate-slide-up for a nice entry, assuming it's defined in your Tailwind config / CSS
+          >
+            <p className="m-0 font-vazir">همپا را برای تجربه بهتر نصب کنید!</p>
             <button
               ref={installButtonRef}
               onClick={handleInstallClick}
-              className="bg-white text-[#009688] border-none py-2 px-4 rounded-md cursor-pointer font-bold"
+              className="bg-white text-[#009688] border-none py-2 px-4 rounded-md cursor-pointer font-bold font-vazir"
             >
               نصب برنامه
             </button>
           </div>
         )}
-        {/* Wrap Routes with AnimatePresence */}
         <Routes location={location} key={location.pathname}>
-          {/* Pass location and key to Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/app" element={<Layout />}>
