@@ -14,6 +14,8 @@ export default defineConfig({
         short_name: "Hampa",
         description: "Your running buddy app",
         theme_color: "#009688",
+        display: "standalone",
+        start_url: "/",
         icons: [
           {
             src: "logo.png",
