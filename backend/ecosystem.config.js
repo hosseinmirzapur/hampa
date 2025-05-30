@@ -3,7 +3,7 @@ module.exports = {
   apps: [
     {
       name: 'hampa-backend',
-      script: 'bun',
+      script: 'npm',
       args: 'run start:prod',
       cwd: './',
       instances: 1,
