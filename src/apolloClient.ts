@@ -7,9 +7,9 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
-const GRAPHQL_ENDPOINT =
-  import.meta.env.VITE_REACT_APP_GRAPHQL_ENDPOINT ||
-  "http://localhost:3000/graphql";
+const GRAPHQL_ENDPOINT = import.meta.env.PROD
+  ? "https://api.hampa.top/graphql"
+  : "http://localhost:3000/graphql";
 
 // Create a reactive variable for the authentication token
 export const authTokenVar = makeVar<string | null>(
