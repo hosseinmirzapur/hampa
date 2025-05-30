@@ -10,6 +10,9 @@ help:
 	@echo "  make start-debug  - Start the backend in debug mode (with watch, not with PM2)"
 	@echo "  make start-prod   - Start the backend in production mode (direct, not with PM2, but PM2 might use this script)"
 	@echo "  make lint         - Lint backend code and fix issues"
+	@echo "  make prisma-dev-migrate - Run Prisma migrations in development mode"
+	@echo "  make prisma-prod-deploy - Deploy Prisma migrations in production mode"
+	@echo "  make prisma-generate - Generate Prisma client"
 	@echo ""
 	@echo "PM2 Management Commands (for production deployment):"
 	@echo "  make deploy       - Build and deploy/start the application with PM2 in production mode"
@@ -50,6 +53,18 @@ start-prod:
 lint:
 	@echo "Linting backend code..."
 	bun run lint
+
+prisma-dev-migrate:
+	@echo "Running Prisma migrations in development mode..."
+	bun run prisma migrate dev
+
+prisma-prod-deploy:
+	@echo "Deploying Prisma migrations in production mode..."
+	bun run prisma migrate deploy
+
+prisma-generate:
+	@echo "Generating Prisma client..."
+	bun run prisma generate
 
 ECOSYSTEM_FILE := ecosystem.config.js
 APP_NAME := hampa-backend
