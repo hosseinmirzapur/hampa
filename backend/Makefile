@@ -58,24 +58,24 @@ APP_NAME := hampa-backend
 
 deploy: build # Always build before deploying
 	@echo "Deploying $(APP_NAME) with PM2 using $(ECOSYSTEM_FILE) in production mode..."
-	pm2 startOrRestart $(ECOSYSTEM_FILE) --env production
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 startOrRestart $(ECOSYSTEM_FILE) --env production
 
 halt:
 	@echo "Halting $(APP_NAME) with PM2..."
-	pm2 stop $(APP_NAME)
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 stop $(APP_NAME)
 
 pm2-reload: build # Always build before reloading
 	@echo "Gracefully reloading $(APP_NAME) with PM2 in production mode..."
-	pm2 reload $(APP_NAME) --env production # Reload uses app name and respects --env
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 reload $(APP_NAME) --env production # Reload uses app name and respects --env
 
 pm2-logs:
 	@echo "Showing PM2 logs for $(APP_NAME)..."
-	pm2 logs $(APP_NAME) --lines 100
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 logs $(APP_NAME) --lines 100
 
 pm2-status:
 	@echo "Showing PM2 status..."
-	pm2 list
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 list
 
 pm2-delete:
 	@echo "Deleting $(APP_NAME) from PM2 management..."
-	pm2 delete $(APP_NAME)
+	/home/hossein/.nvm/versions/node/v20.19.2/bin/pm2 delete $(APP_NAME)
