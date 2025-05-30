@@ -1,4 +1,4 @@
-.PHONY: help install build format start start-dev start-debug start-prod lint test test-watch test-cov test-debug test-e2e deploy halt pm2-reload pm2-logs pm2-status pm2-delete
+.PHONY: help install build format start start-dev start-debug start-prod lin deploy halt pm2-reload pm2-logs pm2-status pm2-delete
 
 help:
 	@echo "Available commands:"
@@ -10,11 +10,6 @@ help:
 	@echo "  make start-debug  - Start the backend in debug mode (with watch, not with PM2)"
 	@echo "  make start-prod   - Start the backend in production mode (direct, not with PM2, but PM2 might use this script)"
 	@echo "  make lint         - Lint backend code and fix issues"
-	@echo "  make test         - Run backend unit tests"
-	@echo "  make test-watch   - Run backend unit tests in watch mode"
-	@echo "  make test-cov     - Run backend unit tests with coverage"
-	@echo "  make test-debug   - Run backend unit tests in debug mode"
-	@echo "  make test-e2e     - Run backend E2E tests"
 	@echo ""
 	@echo "PM2 Management Commands (for production deployment):"
 	@echo "  make deploy       - Build and deploy/start the application with PM2 in production mode"
@@ -55,26 +50,6 @@ start-prod:
 lint:
 	@echo "Linting backend code..."
 	bun run lint
-
-test:
-	@echo "Running backend tests..."
-	bun run test
-
-test-watch:
-	@echo "Running backend tests in watch mode..."
-	bun run test:watch
-
-test-cov:
-	@echo "Running backend tests with coverage..."
-	bun run test:cov
-
-test-debug:
-	@echo "Running backend tests in debug mode..."
-	bun run test:debug
-
-test-e2e:
-	@echo "Running backend E2E tests..."
-	bun run test:e2e
 
 ECOSYSTEM_FILE := ecosystem.config.js
 APP_NAME := hampa-backend

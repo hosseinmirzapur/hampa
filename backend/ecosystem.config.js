@@ -3,10 +3,8 @@ module.exports = {
   apps: [
     {
       name: 'hampa-backend',
-      script: 'npm',
-      args: 'run start:prod',
-      cwd: './',
-      interpreter: 'node',
+      script: './dist/main.js', // Point directly to the compiled JavaScript file
+      interpreter: '/home/hossein/.bun/bin/bun', // Specify the full path to Bun
       instances: 1,
       exec_mode: 'cluster',
       watch: false,
