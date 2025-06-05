@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Tauri specific paths
+src-tauri/target/
+src-tauri/Cargo.lock
+src-tauri/*.bk
+src-tauri/logs/
+src-tauri/.rustc_info.json
