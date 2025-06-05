@@ -1,12 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-// Removed ToastContainer, Slide from here
-import "react-toastify/dist/ReactToastify.css";
+// The following CSS import might cause issues if the bundler (e.g., esbuild)
+// isn't configured to handle CSS files directly in JS/TS.
+// It's common to import global styles in a main entry file (like index.js or main.jsx)
+// or link them in your index.html.
+// import "react-toastify/dist/ReactToastify.css";
 import { Layout } from "./components/layout/Layout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
-import { ThemeProvider } from "./contexts/ThemeContext"; // Removed useTheme from here
-import ThemedToastContainer from "./components/layout/ThemedToastContainer"; // New import
+import { ThemeProvider } from "./contexts/ThemeContext"; // Resolved: Kept from feat/dark-mode-toggle
+import ThemedToastContainer from "./components/layout/ThemedToastContainer"; // Resolved: Kept from feat/dark-mode-toggle
 
 // Pages
 import Home from "./pages/Home";
@@ -21,7 +24,7 @@ import JointRuns from "./pages/JointRuns";
 import NotFound from "./pages/NotFound";
 
 function App() {
-  // Removed const { theme } = useTheme();
+  // Resolved: const { theme } = useTheme(); was removed in feat/dark-mode-toggle
   const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false); // New state
@@ -74,8 +77,7 @@ function App() {
       );
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, [isAppInstalled]); // Added isAppInstalled to dependencies, though its direct change within this effect is less common.
-  // The main goal is to set it once based on initial standalone check or appinstalled event.
+  }, [isAppInstalled]); // Added isAppInstalled to dependencies
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -106,39 +108,40 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           {showInstallBanner && ( // Updated condition
-          <div
-            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4 animate-slide-up"
-            // Using your animate-slide-up for a nice entry, assuming it's defined in your Tailwind config / CSS
-          >
-            <p className="m-0 font-vazir">همپا را برای تجربه بهتر نصب کنید!</p>
-            <button
-              ref={installButtonRef}
-              onClick={handleInstallClick}
-              className="bg-white text-[#009688] border-none py-2 px-4 rounded-md cursor-pointer font-bold font-vazir"
+            <div
+              className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4 animate-slide-up"
+              // Using your animate-slide-up for a nice entry, assuming it's defined in your Tailwind config / CSS
             >
-              نصب برنامه
-            </button>
-          </div>
-        )}
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/app" element={<Layout />}>
-            <Route index element={<Explore />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="explore" element={<Explore />} />
-            <Route path="runners" element={<RunnersList />} />
-            <Route path="my-cards" element={<MyCards />} />
-            <Route path="joint-runs" element={<JointRuns />} />
-            <Route path="cards/:id" element={<CardDetails />} />
-            <Route path="create-card" element={<CreateCard />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-        <ThemedToastContainer /> {/* Replaced ToastContainer */}
-      </NotificationProvider>
-    </AuthProvider>
-  </ThemeProvider>
+              <p className="m-0 font-vazir">همپا را برای تجربه بهتر نصب کنید!</p>
+              <button
+                ref={installButtonRef}
+                onClick={handleInstallClick}
+                className="bg-white text-[#009688] border-none py-2 px-4 rounded-md cursor-pointer font-bold font-vazir"
+              >
+                نصب برنامه
+              </button>
+            </div>
+          )}
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/app" element={<Layout />}>
+              <Route index element={<Explore />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="explore" element={<Explore />} />
+              <Route path="runners" element={<RunnersList />} />
+              <Route path="my-cards" element={<MyCards />} />
+              <Route path="joint-runs" element={<JointRuns />} />
+              <Route path="cards/:id" element={<CardDetails />} />
+              <Route path="create-card" element={<CreateCard />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+          {/* Resolved: Replaced ToastContainer with ThemedToastContainer from feat/dark-mode-toggle */}
+          <ThemedToastContainer />
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
