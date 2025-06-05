@@ -88,8 +88,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               className="w-full h-full rounded-full object-cover border-2 border-primary"
             />
           ) : (
-            <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-              <UserIcon size={40} className="text-gray-400" />
+            <div className="w-full h-full rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
+              <UserIcon size={40} className="text-gray-400 dark:text-gray-500" />
             </div>
           )}
           <label
@@ -125,13 +125,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             className="hidden"
           />
         </div>
-        <p className="text-xs text-gray-500">حداکثر 1 مگابایت</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">حداکثر 1 مگابایت</p>
       </div>
 
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           اسم یا لقب
         </label>
@@ -149,7 +149,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       <div>
         <label
           htmlFor="birthDate"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           تاریخ تولد (شمسی)
         </label>
@@ -162,32 +162,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         />
       </div>
 
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-gray-100 dark:bg-neutral-800 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
           اطلاعات کاربری
         </h3>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">شماره موبایل:</span>
-            <span className="text-sm">{user.phone}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">شماره موبایل:</span>
+            <span className="text-sm dark:text-gray-300">{user.phone}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">ایمیل:</span>
-            <span className="text-sm">{user.email || "-"}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">ایمیل:</span>
+            <span className="text-sm dark:text-gray-300">{user.email || "-"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">بیو:</span>
-            <span className="text-sm">{user.bio || "-"}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">بیو:</span>
+            <span className="text-sm dark:text-gray-300">{user.bio || "-"}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">وضعیت اشتراک</h3>
+      <div className="bg-gray-100 dark:bg-neutral-800 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">وضعیت اشتراک</h3>
         {user.hasSubscription ? (
           <div className="flex justify-between items-center">
             <span className="text-sm text-success">اشتراک فعال تا تاریخ:</span>
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium dark:text-gray-300">
               {user.subscriptionExpiryDate
                 ? formatDate(user.subscriptionExpiryDate)
                 : "-"}
@@ -198,7 +198,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             <span className="text-sm text-error">اشتراک ندارید</span>
             <button
               type="button"
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm" // btn-primary already has dark mode focus via index.css
               onClick={() =>
                 toast.info("در حال حاضر امکان خرید اشتراک وجود ندارد")
               }

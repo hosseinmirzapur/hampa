@@ -66,38 +66,38 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+              <div className="w-full h-full rounded-full bg-gray-300 dark:bg-neutral-700 flex items-center justify-center text-gray-600 dark:text-gray-400">
                 {creatorInitial} {/* Use fallback initial */}
               </div>
             )}
           </div>
           <div className="mr-3">
-            <h3 className="font-bold text-lg">{creatorNameFallback}</h3>{" "}
+            <h3 className="font-bold text-lg dark:text-gray-100">{creatorNameFallback}</h3>{" "}
             {/* Use fallback name */}
           </div>
         </div>
 
         <div className="mb-3">
-          <div className="flex items-center text-gray-700 mb-1">
+          <div className="flex items-center text-gray-700 dark:text-gray-300 mb-1">
             <MapPin size={16} className="ml-1 flex-shrink-0" />
             <span className="text-sm">{card.location}</span>
           </div>
-          <div className="flex items-center text-gray-700 mb-1">
+          <div className="flex items-center text-gray-700 dark:text-gray-300 mb-1">
             <Clock size={16} className="ml-1 flex-shrink-0" />
             <span className="text-sm">
               {formatDays(card.days)} - {card.time}
             </span>
           </div>
-          <div className="flex items-center text-gray-700">
+          <div className="flex items-center text-gray-700 dark:text-gray-300">
             <Phone size={16} className="ml-1 flex-shrink-0" />
             {card.isPhoneNumberPublic ? (
               <span className="text-sm flex items-center">
-                <Eye size={14} className="ml-1 text-primary" />
+                <Eye size={14} className="ml-1 text-primary dark:text-primary-light" />
                 {card.phoneNumber}
               </span>
             ) : (
-              <span className="text-sm flex items-center">
-                <EyeOff size={14} className="ml-1 text-gray-500" />
+              <span className="text-sm flex items-center text-gray-500 dark:text-gray-400">
+                <EyeOff size={14} className="ml-1" /> {/* Icon inherits color */}
                 محرمانه
               </span>
             )}
@@ -106,7 +106,7 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
 
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center">
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {/* card.interestedUsers is not available directly */}0 علاقه‌مند{" "}
               {/* Placeholder */}
             </span>
@@ -116,7 +116,7 @@ export const RunnerCard: React.FC<RunnerCardProps> = ({
             <button
               className={`btn ${
                 hasExpressedInterest
-                  ? "bg-gray-100 text-primary hover:bg-gray-200 cursor-default"
+                  ? "bg-gray-100 text-primary hover:bg-gray-200 dark:bg-neutral-700 dark:text-primary-light dark:hover:bg-neutral-600 cursor-default"
                   : "btn-outline"
               }`}
               onClick={handleInterestClick}

@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Layout } from "./components/layout/Layout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext"; // Import useTheme
 
 // Pages
 import Home from "./pages/Home";
@@ -19,6 +20,7 @@ import JointRuns from "./pages/JointRuns";
 import NotFound from "./pages/NotFound";
 
 function App() {
+  const { theme } = useTheme(); // Get theme from context
   const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false); // New state
@@ -99,9 +101,10 @@ function App() {
   const showInstallBanner = deferredPrompt && !isAppInstalled;
 
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        {showInstallBanner && ( // Updated condition
+    <ThemeProvider> {/* Wrap AuthProvider with ThemeProvider */}
+      <AuthProvider>
+        <NotificationProvider>
+          {showInstallBanner && ( // Updated condition
           <div
             className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4 animate-slide-up"
             // Using your animate-slide-up for a nice entry, assuming it's defined in your Tailwind config / CSS
@@ -141,11 +144,12 @@ function App() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="light"
+          theme={theme} // Use theme from context
           transition={Slide}
         />
       </NotificationProvider>
     </AuthProvider>
+  </ThemeProvider>
   );
 }
 
