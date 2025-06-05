@@ -36,7 +36,7 @@ html {
 }
 
 body {
-  @apply text-gray-900 bg-gray-100;
+  @apply text-gray-900 bg-gray-100 dark:text-gray-100 dark:bg-neutral-extradark;
 }
 
 #root {
@@ -72,17 +72,17 @@ input[type=number] {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--gray-200);
+  @apply bg-gray-200 dark:bg-neutral-700; /* Added dark mode track */
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-400);
+  @apply bg-gray-400 dark:bg-neutral-500; /* Added dark mode thumb */
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
+  @apply bg-gray-500 dark:bg-neutral-400; /* Added dark mode thumb hover */
 }
 
 .font-vazir {
@@ -95,22 +95,22 @@ input[type=number] {
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark focus:ring-2 focus:ring-primary-light focus:ring-opacity-50;
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-2 focus:ring-primary-light focus:ring-opacity-50 dark:focus:ring-primary-dark;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-2 focus:ring-secondary-light focus:ring-opacity-50;
+    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-2 focus:ring-secondary-light focus:ring-opacity-50 dark:focus:ring-secondary-dark;
   }
   
   .btn-outline {
-    @apply border border-primary text-primary hover:bg-primary hover:text-white focus:ring-2 focus:ring-primary-light focus:ring-opacity-50;
+    @apply border border-primary text-primary hover:bg-primary hover:text-white focus:ring-2 focus:ring-primary-light focus:ring-opacity-50 dark:text-primary-light dark:border-primary-light dark:hover:bg-primary-light dark:hover:text-neutral-900 dark:focus:ring-primary;
   }
   
   .input {
-    @apply block w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply block w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-100 dark:focus:ring-primary-light dark:placeholder-neutral-400;
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-200 hover:shadow-lg;
+    @apply bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-200 hover:shadow-lg dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:hover:shadow-primary-dark/10;
   }
 }
