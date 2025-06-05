@@ -113,7 +113,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           عنوان کارت
         </label>
@@ -132,7 +132,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       <div>
         <label
           htmlFor="location"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           محل دویدن
         </label>
@@ -149,7 +149,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       </div>
 
       <div>
-        <p className="block text-sm font-medium text-gray-700 mb-2">روزها</p>
+        <p className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">روزها</p>
         <div className="flex flex-wrap gap-2">
           {Object.keys(days).map((day) => (
             <button
@@ -158,7 +158,7 @@ export const CardForm: React.FC<CardFormProps> = ({
               className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                 days[day as DayOfWeek]
                   ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-600"
               }`}
               onClick={() => handleDayClick(day as DayOfWeek)}
             >
@@ -174,7 +174,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       <div>
         <label
           htmlFor="time"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           ساعت حدودی
         </label>
@@ -204,7 +204,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       <div>
         <label
           htmlFor="phoneNumber"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           شماره تماس
         </label>
@@ -229,11 +229,11 @@ export const CardForm: React.FC<CardFormProps> = ({
           id="isPhoneNumberPublic"
           type="checkbox"
           {...register("isPhoneNumberPublic")}
-          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary dark:border-neutral-600 dark:focus:ring-primary-light dark:checked:bg-primary"
         />
         <label
           htmlFor="isPhoneNumberPublic"
-          className="mr-2 block text-sm text-gray-700"
+          className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
         >
           شماره تماس مشخص باشد (در غیر این صورت محرمانه خواهد بود)
         </label>

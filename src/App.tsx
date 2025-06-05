@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { ToastContainer, Slide } from "react-toastify";
+// Removed ToastContainer, Slide from here
 import "react-toastify/dist/ReactToastify.css";
 import { Layout } from "./components/layout/Layout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { ThemeProvider } from "./contexts/ThemeContext"; // Removed useTheme from here
+import ThemedToastContainer from "./components/layout/ThemedToastContainer"; // New import
 
 // Pages
 import Home from "./pages/Home";
@@ -19,6 +21,7 @@ import JointRuns from "./pages/JointRuns";
 import NotFound from "./pages/NotFound";
 
 function App() {
+  // Removed const { theme } = useTheme();
   const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false); // New state
@@ -99,9 +102,10 @@ function App() {
   const showInstallBanner = deferredPrompt && !isAppInstalled;
 
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        {showInstallBanner && ( // Updated condition
+    <ThemeProvider> {/* Wrap AuthProvider with ThemeProvider */}
+      <AuthProvider>
+        <NotificationProvider>
+          {showInstallBanner && ( // Updated condition
           <div
             className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#009688] text-white p-4 rounded-lg shadow-lg flex items-center gap-4 animate-slide-up"
             // Using your animate-slide-up for a nice entry, assuming it's defined in your Tailwind config / CSS
@@ -131,21 +135,10 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={true}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          transition={Slide}
-        />
+        <ThemedToastContainer /> {/* Replaced ToastContainer */}
       </NotificationProvider>
     </AuthProvider>
+  </ThemeProvider>
   );
 }
 
