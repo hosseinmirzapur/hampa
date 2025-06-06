@@ -26,9 +26,13 @@ export class AuthService {
   async requestOtp(phone: string): Promise<string> {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const otpKey = `otp:${phone}`;
+    const otpAttemptsKey = `otp:attempts:${phone}`;
+    const MAX_OTP_ATTEMPTS = 3;
 
     // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
-    await this.cacheManager.set(otpKey, otpCode, 300); // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
+    await this.cacheManager.set(otpKey, otpCode, 300);
+    // Initialize OTP attempts in Redis with a TTL of 5 minutes (300 seconds)
+    await this.cacheManager.set(otpAttemptsKey, MAX_OTP_ATTEMPTS, 300);
 
     // Find or create user by phone number (still in DB for user data persistence)
     let user = await this.prisma.user.findUnique({ where: { phone } });
@@ -42,7 +46,7 @@ export class AuthService {
       throw new BadRequestException('Failed to send OTP. Please try again.');
     }
 
-    return 'OTP sent successfully.'; // Return a success message, not the OTP code itself
+    return 'کد یکبار مصرف با موفقیت ارسال شد'; // Return a success message, not the OTP code itself
   }
 
   async verifyOtpAndRegisterUser(
@@ -50,16 +54,37 @@ export class AuthService {
   ): Promise<UserProfileType> {
     const { phone, otp, name, password } = data;
     const otpKey = `otp:${phone}`;
+    const otpAttemptsKey = `otp:attempts:${phone}`;
 
     const storedOtp = await this.cacheManager.get<string>(otpKey);
-    // If OTP is valid from Redis, remove it from cache to prevent reuse
-    if (storedOtp && storedOtp === otp) {
-      await this.cacheManager.del(otpKey);
+    let attemptsLeft = await this.cacheManager.get<number>(otpAttemptsKey);
+
+    if (attemptsLeft === null || attemptsLeft === undefined) {
+      throw new BadRequestException(
+        'Invalid or expired OTP. Please request a new OTP.',
+      );
     }
 
     if (!storedOtp || storedOtp !== otp) {
-      throw new BadRequestException('Invalid or expired OTP.');
+      attemptsLeft--;
+      await this.cacheManager.set(otpAttemptsKey, attemptsLeft, 300);
+
+      if (attemptsLeft <= 0) {
+        await this.cacheManager.del(otpKey);
+        await this.cacheManager.del(otpAttemptsKey);
+        throw new BadRequestException(
+          'Too many failed attempts. Please request a new OTP.',
+        );
+      }
+
+      throw new BadRequestException(
+        `Invalid or expired OTP. ${attemptsLeft} attempts remaining.`,
+      );
     }
+
+    // If OTP is valid from Redis, remove it from cache to prevent reuse
+    await this.cacheManager.del(otpKey);
+    await this.cacheManager.del(otpAttemptsKey);
     // OTP is valid, it has already been removed if from in-memory or Redis
 
     const user = await this.prisma.user.findUnique({ where: { phone } });

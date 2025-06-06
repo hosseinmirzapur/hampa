@@ -251,12 +251,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           return false;
         }
       } else {
-        const errorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
+        const rawErrorMessage = errors?.[0]?.message || "کد تایید اشتباه است.";
+        let newAttemptsLeft = phoneVerification.attemptsLeft - 1; // Default decrement
+        let displayErrorMessage = rawErrorMessage;
+
+        // Regex to extract attempts left from the error message
+        const attemptsMatch = rawErrorMessage.match(/(\d+) attempts remaining/);
+        if (attemptsMatch && attemptsMatch[1]) {
+          newAttemptsLeft = parseInt(attemptsMatch[1], 10);
+          // Remove the "X attempts remaining" part from the displayed error message
+          displayErrorMessage = rawErrorMessage.replace(
+            / \d+ attempts remaining\.?/,
+            ""
+          );
+        } else if (rawErrorMessage.includes("Too many failed attempts")) {
+          newAttemptsLeft = 0; // Set to 0 if too many attempts
+        }
+
         setPhoneVerification((prev) => ({
           ...prev,
-          attemptsLeft: prev.attemptsLeft - 1,
-          timeLeft: prev.attemptsLeft === 1 ? 180 : prev.timeLeft,
-          error: errorMessage,
+          attemptsLeft: newAttemptsLeft,
+          // Only reset timeLeft if attempts are exhausted and a new OTP is needed
+          timeLeft: newAttemptsLeft <= 0 ? 0 : prev.timeLeft, // Set to 0 if attempts are exhausted
+          error: displayErrorMessage,
         }));
         return false;
       }
