@@ -172,9 +172,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setPhoneVerification((prev) => ({ ...prev, resendLoading: false }));
 
       if (data?.requestOtp) {
-        if (process.env.NODE_ENV === "development") {
-          toast.info(`OTP for ${phoneNumber}: ${data.requestOtp}`);
-        }
+        // The backend now returns a success message, not the OTP code.
+        // We can optionally show a toast message to the user.
+        toast.success(data.requestOtp); // Display the success message from the backend
         console.log("requestOtp mutation successful, returning true");
         return true;
       } else {

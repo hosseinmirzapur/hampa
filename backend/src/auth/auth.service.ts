@@ -12,15 +12,15 @@ import { User } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserProfileType } from '../users/dto/user-profile.dto';
+import { SmsService } from '../sms/sms.service';
 
 @Injectable()
 export class AuthService {
-  private otpStore: Map<string, { code: string; expiry: number }> = new Map(); // Temporary in-memory OTP store
-
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private smsService: SmsService, // Inject SmsService
   ) {}
 
   async requestOtp(phone: string): Promise<string> {
@@ -28,13 +28,7 @@ export class AuthService {
     const otpKey = `otp:${phone}`;
 
     // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
-    await this.cacheManager.set(otpKey, otpCode, 300);
-
-    // Store OTP in temporary in-memory store for development/debugging
-    this.otpStore.set(phone, {
-      code: otpCode,
-      expiry: Date.now() + 300 * 1000,
-    });
+    await this.cacheManager.set(otpKey, otpCode, 300); // Store OTP in Redis with a TTL of 5 minutes (300 seconds)
 
     // Find or create user by phone number (still in DB for user data persistence)
     let user = await this.prisma.user.findUnique({ where: { phone } });
@@ -42,8 +36,13 @@ export class AuthService {
       user = await this.prisma.user.create({ data: { phone } });
     }
 
-    console.log(`OTP for ${phone}: ${otpCode} (stored in Redis and in-memory)`); // Log OTP for testing purposes
-    return otpCode; // Return the OTP code
+    // Send OTP via SMS.ir
+    const smsSent = await this.smsService.sendOtp(phone, otpCode);
+    if (!smsSent) {
+      throw new BadRequestException('Failed to send OTP. Please try again.');
+    }
+
+    return 'OTP sent successfully.'; // Return a success message, not the OTP code itself
   }
 
   async verifyOtpAndRegisterUser(
@@ -52,21 +51,10 @@ export class AuthService {
     const { phone, otp, name, password } = data;
     const otpKey = `otp:${phone}`;
 
-    let storedOtp: string | undefined | null;
-
-    // First, try to get OTP from in-memory store (for development/debugging)
-    const inMemoryOtp = this.otpStore.get(phone);
-    if (inMemoryOtp && inMemoryOtp.expiry > Date.now()) {
-      storedOtp = inMemoryOtp.code;
-      // If using in-memory, remove it after use to simulate single-use OTP
-      this.otpStore.delete(phone);
-    } else {
-      // If not in in-memory store or expired, try Redis
-      storedOtp = await this.cacheManager.get<string>(otpKey);
-      // If OTP is valid from Redis, remove it from cache to prevent reuse
-      if (storedOtp && storedOtp === otp) {
-        await this.cacheManager.del(otpKey);
-      }
+    const storedOtp = await this.cacheManager.get<string>(otpKey);
+    // If OTP is valid from Redis, remove it from cache to prevent reuse
+    if (storedOtp && storedOtp === otp) {
+      await this.cacheManager.del(otpKey);
     }
 
     if (!storedOtp || storedOtp !== otp) {
