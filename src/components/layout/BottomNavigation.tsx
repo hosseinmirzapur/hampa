@@ -47,6 +47,20 @@ export const BottomNavigation: React.FC = () => {
           </NavLink>
         ))}
       </div>
+      <div className="flex items-center justify-center h-12 bg-white dark:bg-neutral-dark border-t border-gray-200 dark:border-neutral-700">
+        <a
+          referrerPolicy="origin"
+          target="_blank"
+          href="https://trustseal.enamad.ir/?id=617898&Code=kCUuDwZlieZwmdaZ4DizwDFm3ExlwdO8"
+        >
+          <img
+            referrerPolicy="origin"
+            src="https://trustseal.enamad.ir/logo.aspx?id=617898&Code=kCUuDwZlieZwmdaZ4DizwDFm3ExlwdO8"
+            alt="Enamad Trust Seal"
+            style={{ cursor: "pointer", height: "40px" }}
+          />
+        </a>
+      </div>
     </nav>
   );
 };
